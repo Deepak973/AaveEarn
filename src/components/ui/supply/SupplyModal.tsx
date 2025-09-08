@@ -1,4 +1,4 @@
-import { useContext, useState } from "react";
+import { useContext, useState, useEffect } from "react";
 import Image from "next/image";
 import { parseUnits } from "ethers/lib/utils";
 import { useTokenApprove } from "~/hooks/transaction/useToken";
@@ -24,6 +24,7 @@ import { BigNumber } from "bignumber.js";
 import NumberFormat, { NumberFormatProps } from "react-number-format";
 import React from "react";
 import { useQueryClient } from "@tanstack/react-query";
+import { createPortal } from "react-dom";
 
 interface CustomProps {
   onChange: (event: { target: { name: string; value: string } }) => void;
@@ -64,6 +65,7 @@ interface SupplyModalProps {
 
 export function SupplyModal({ onClose, underlyingAsset }: SupplyModalProps) {
   const [amount, setAmount] = useState("");
+  const [mounted, setMounted] = useState(false);
   const { address: userAddress } = useAccount();
   const currentMarketData = useRootStore((store) => store.currentMarketData);
   const { showAlert } = useContext(AlertsContext);
@@ -219,6 +221,18 @@ export function SupplyModal({ onClose, underlyingAsset }: SupplyModalProps) {
 
   const isLoading = approvalLoading || supplyLoading || wrappedTokenLoading;
 
+  useEffect(() => {
+    const original = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = original;
+    };
+  }, []);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   const needsApproval = !!(
     !isNativeETH &&
     (allowance === BigInt(0) ||
@@ -298,86 +312,101 @@ export function SupplyModal({ onClose, underlyingAsset }: SupplyModalProps) {
     onClose();
   };
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50">
-      <div className="w-full max-w-md bg-primary-bg rounded-2xl p-6">
+  if (!mounted) return null;
+
+  return createPortal(
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+      <div className="w-full max-w-sm max-h-[85vh] overflow-y-auto bg-gray-900 border-2 border-white rounded-2xl p-6 shadow-2xl">
         {/* Header */}
         <div className="flex justify-between items-center mb-6">
-          <h2 className="text-xl font-semibold text-white">Supply {symbol}</h2>
+          <h2 className="text-lg font-semibold text-white">Supply {symbol}</h2>
           <button
             onClick={onClose}
             disabled={isLoading}
-            className="text-secondary hover:text-white transition-colors"
+            className="text-gray-400 hover:text-white transition-colors text-xl leading-none disabled:opacity-50"
           >
-            ✕
+            ×
           </button>
         </div>
 
         {/* Asset Info */}
-        <div className="glass-effect p-4 mb-6">
+        <div className="bg-gray-800/50 border border-white rounded-xl p-4 mb-6">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center">
+              <div className="w-8 h-8 rounded-full bg-gray-700 flex items-center justify-center">
                 <Image
                   src={`/assets/${poolReserve.iconSymbol.toLowerCase()}.svg`}
                   alt={poolReserve.name}
-                  width={24}
-                  height={24}
+                  width={20}
+                  height={20}
                 />
               </div>
-              <div className="font-medium text-white">{symbol}</div>
+              <div className="font-medium text-white text-sm">{symbol}</div>
             </div>
             <Tooltip title="Annual Percentage Yield" arrow>
-              <div className="accent-text cursor-help">
-                {(+poolReserve.supplyAPY * 100).toFixed(2)}% APY
+              <div className="px-2 py-1 bg-green-500/10 text-green-400 text-xs font-medium rounded-md cursor-help">
+                {(+poolReserve.supplyAPY * 100).toFixed(2)}%
               </div>
             </Tooltip>
           </div>
 
           {/* Amount Input */}
-          <InputBase
-            sx={{ flex: 1 }}
-            placeholder="0.00"
-            disabled={isLoading}
-            value={amount}
-            autoFocus
-            onChange={(e) => {
-              if (Number(e.target.value) > Number(maxAmountToSupply)) {
-                handleChange("-1");
-              } else {
-                handleChange(e.target.value);
-              }
-            }}
-            inputProps={{
-              "aria-label": "amount input",
-              style: {
-                fontSize: "21px",
-                lineHeight: "28,01px",
-                padding: 0,
-                height: "28px",
-                textOverflow: "ellipsis",
-                whiteSpace: "nowrap",
-                overflow: "hidden",
-              },
-            }}
-            // eslint-disable-next-line
-            inputComponent={NumberFormatCustom as any}
-          />
-          <div className="text-sm text-secondary mt-2">
-            ${" "}
-            {amountInUsd.gt(0)
-              ? roundToTokenDecimals(amountInUsd.toString(), 4)
-              : "0.00"}
+          <div className="mb-3">
+            <InputBase
+              sx={{
+                flex: 1,
+                "& input": {
+                  color: "white",
+                  fontSize: "18px",
+                  fontWeight: 500,
+                  "&::placeholder": {
+                    color: "#9CA3AF",
+                    opacity: 1,
+                  },
+                },
+              }}
+              placeholder="0.00"
+              disabled={isLoading}
+              value={amount}
+              autoFocus
+              onChange={(e) => {
+                if (Number(e.target.value) > Number(maxAmountToSupply)) {
+                  handleChange("-1");
+                } else {
+                  handleChange(e.target.value);
+                }
+              }}
+              inputProps={{
+                "aria-label": "amount input",
+                style: {
+                  fontSize: "18px",
+                  fontWeight: 500,
+                  padding: 0,
+                  height: "24px",
+                  textOverflow: "ellipsis",
+                  whiteSpace: "nowrap",
+                  overflow: "hidden",
+                },
+              }}
+              // eslint-disable-next-line
+              inputComponent={NumberFormatCustom as any}
+            />
+            <div className="text-xs text-gray-400 mt-1">
+              ${" "}
+              {amountInUsd.gt(0)
+                ? roundToTokenDecimals(amountInUsd.toString(), 2)
+                : "0.00"}
+            </div>
           </div>
 
-          <div className="flex justify-between text-sm text-secondary mt-2">
+          <div className="flex justify-between text-xs text-gray-400">
             <span>
-              Available: {roundToTokenDecimals(walletBalance, 5)} {symbol}
+              Balance: {roundToTokenDecimals(walletBalance, 4)} {symbol}
             </span>
             <button
               onClick={() => handleChange("-1")}
               disabled={isLoading}
-              className="hover:text-white transition-colors disabled:opacity-50"
+              className="text-gray-400 hover:text-white transition-colors disabled:opacity-50 font-medium"
             >
               MAX
             </button>
@@ -385,20 +414,15 @@ export function SupplyModal({ onClose, underlyingAsset }: SupplyModalProps) {
         </div>
 
         {/* Action Buttons */}
-        <div className="flex gap-3">
+        <div className="space-y-3">
           {/* Show approve button only for non-native tokens that need approval */}
-          {!isNativeETH && (
+          {!isNativeETH && needsApproval && (
             <button
               onClick={handleApprove}
-              disabled={
-                !amount ||
-                parseFloat(amount) <= 0 ||
-                isLoading ||
-                !needsApproval
-              }
-              className="flex-1 px-6 py-3 bg-accent-light text-primary-bg rounded-lg font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+              disabled={!amount || parseFloat(amount) <= 0 || isLoading}
+              className="w-full px-4 py-3 bg-gray-700 text-white text-sm font-medium rounded-xl hover:bg-gray-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-gray-700"
             >
-              {approvalLoading ? "Approving..." : "Approve"}
+              {approvalLoading ? "Approving..." : `Approve ${symbol}`}
             </button>
           )}
 
@@ -411,14 +435,15 @@ export function SupplyModal({ onClose, underlyingAsset }: SupplyModalProps) {
               isLoading ||
               needsApproval
             }
-            className={`${
-              isNativeETH ? "w-full" : "flex-1"
-            } px-6 py-3 bg-accent-light text-primary-bg rounded-lg font-medium disabled:opacity-50 disabled:cursor-not-allowed`}
+            className="w-full px-4 py-3 bg-gray-700 text-white text-sm font-medium rounded-xl hover:bg-gray-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-gray-700"
           >
-            {isLoading ? "Supplying..." : "Supply"}
+            {supplyLoading || wrappedTokenLoading
+              ? "Supplying..."
+              : `Supply ${symbol}`}
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

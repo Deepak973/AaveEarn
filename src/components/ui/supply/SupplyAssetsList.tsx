@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import { formatUnits } from "ethers/lib/utils";
 import { useRootStore } from "~/store/root";
@@ -47,6 +47,23 @@ export function SupplyAssetsList() {
 
   const [openSupplyModal, setOpenSupplyModal] = useState(false);
   const [asset, setAsset] = useState<ComputedReserveData | null>(null);
+
+  useEffect(() => {
+    if (!openSupplyModal) return;
+    const original = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = original;
+    };
+  }, [openSupplyModal]);
+
+  const formatApyPercent = (apy: number | string) => {
+    const n = typeof apy === "string" ? parseFloat(apy) : apy;
+    if (!isFinite(n) || n === 0) return "0%";
+    const pct = n * 100;
+    if (pct > 0 && pct < 0.01) return "<0.01%";
+    return `${pct.toFixed(2)}%`;
+  };
 
   const tokensToSupply =
     reserves && reserves.length > 0
@@ -178,8 +195,13 @@ export function SupplyAssetsList() {
       {/* Header with Toggle */}
       <div className="flex justify-between items-center mb-4">
         <div>
-          <h2 className="text-lg font-semibold text-white">Assets to Supply</h2>
-          <p className="text-sm text-gray-400 mt-1">
+          <h2
+            className="text-lg font-semibold"
+            style={{ color: "var(--text-secondary)" }}
+          >
+            Assets to Supply
+          </h2>
+          <p className="text-sm mt-1" style={{ color: "var(--text-primary)" }}>
             {filteredReserves.length} asset
             {filteredReserves.length !== 1 ? "s" : ""} available
           </p>
@@ -193,7 +215,7 @@ export function SupplyAssetsList() {
             />
           }
           label={
-            <span className="text-xs text-gray-500">
+            <span className="text-xs" style={{ color: "var(--accent-light)" }}>
               {showZeroBalance ? "Hide" : "Show"} empty
             </span>
           }
@@ -206,13 +228,31 @@ export function SupplyAssetsList() {
         {filteredReserves.map((reserve) => (
           <div
             key={reserve.underlyingAsset}
-            className="bg-gray-900/50 border border-gray-700/30 rounded-xl p-4 hover:border-gray-600/40 hover:bg-gray-900/70 transition-all duration-200"
+            className="relative border border-gray-700/30 rounded-xl p-4 hover:border-gray-600/40 transition-all duration-200"
+            style={{ backgroundColor: "var(--secondary-bg)" }}
           >
+            {/* APY tag in the top-right corner */}
+            <Tooltip title="Annual Percentage Yield" arrow placement="top">
+              <div
+                className="absolute top-0 right-0 rounded-bl-lg text-[10px] font-medium"
+                style={{
+                  backgroundColor: "var(--accent-light)",
+                  color: "var(--text-secondary)",
+                }}
+              >
+                <div className="px-2 py-1">
+                  {formatApyPercent(reserve.supplyAPY)}
+                </div>
+              </div>
+            </Tooltip>
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
               {/* Asset Row */}
               <div className="flex items-center gap-3 flex-1">
                 {/* Token Icon */}
-                <div className="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center">
+                <div
+                  className="w-10 h-10 rounded-full flex items-center justify-center"
+                  style={{ backgroundColor: "var(--primary-bg)" }}
+                >
                   <Image
                     src={`/assets/${reserve.iconSymbol.toLowerCase()}.svg`}
                     alt={reserve.name}
@@ -229,19 +269,11 @@ export function SupplyAssetsList() {
                       arrow
                       placement="top"
                     >
-                      <div className="font-medium text-white cursor-help text-sm">
+                      <div
+                        className="font-medium cursor-help text-sm"
+                        style={{ color: "var(--text-secondary)" }}
+                      >
                         {reserve.symbol}
-                      </div>
-                    </Tooltip>
-
-                    {/* APY Badge */}
-                    <Tooltip
-                      title="Annual Percentage Yield"
-                      arrow
-                      placement="top"
-                    >
-                      <div className="px-2 py-1 bg-green-500/10 text-green-400 text-xs font-medium rounded-md">
-                        {(+reserve.supplyAPY * 100).toFixed(2)}%
                       </div>
                     </Tooltip>
                   </div>
@@ -252,14 +284,20 @@ export function SupplyAssetsList() {
                       arrow
                       placement="top"
                     >
-                      <div className="text-xs text-gray-400 cursor-help">
+                      <div
+                        className="text-xs cursor-help"
+                        style={{ color: "var(--text-secondary)" }}
+                      >
                         Balance:{" "}
                         {roundToTokenDecimals(reserve.walletBalance, 4)}{" "}
                         {reserve.symbol}
                       </div>
                     </Tooltip>
 
-                    <div className="text-xs text-gray-500">
+                    <div
+                      className="text-xs"
+                      style={{ color: "var(--text-secondary)" }}
+                    >
                       ${(+reserve.walletBalanceUSD).toFixed(2)}
                     </div>
                   </div>
@@ -277,7 +315,11 @@ export function SupplyAssetsList() {
                     !reserve.walletBalance ||
                     parseFloat(reserve.walletBalance) <= 0
                   }
-                  className="w-full sm:w-auto px-4 py-2 bg-gray-700 text-white text-xs font-medium rounded-lg hover:bg-gray-600 transition-colors disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-gray-700"
+                  className="w-full sm:w-auto px-4 py-2 text-xs font-medium rounded-lg transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                  style={{
+                    backgroundColor: "var(--accent-light)",
+                    color: "var(--text-secondary)",
+                  }}
                 >
                   Supply
                 </button>
@@ -287,12 +329,26 @@ export function SupplyAssetsList() {
         ))}
 
         {filteredReserves.length === 0 && (
-          <div className="text-center py-12 text-gray-400">
-            <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gray-800 flex items-center justify-center">
-              <div className="w-8 h-8 bg-gray-700 rounded-lg"></div>
+          <div
+            className="text-center py-12"
+            style={{ color: "var(--text-primary)" }}
+          >
+            <div
+              className="w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center"
+              style={{ backgroundColor: "var(--primary-bg)" }}
+            >
+              <div
+                className="w-8 h-8 rounded-lg"
+                style={{ backgroundColor: "var(--accent-light)" }}
+              ></div>
             </div>
-            <p className="text-sm text-gray-500">No assets available</p>
-            <p className="text-xs text-gray-600 mt-1">
+            <p className="text-sm" style={{ color: "var(--accent-light)" }}>
+              No assets available
+            </p>
+            <p
+              className="text-xs mt-1"
+              style={{ color: "var(--accent-light)" }}
+            >
               {showZeroBalance
                 ? "Connect your wallet or switch network to get started"
                 : "Enable 'Show empty' to view all assets"}

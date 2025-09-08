@@ -53,6 +53,14 @@ export function YourSupplies() {
   const [openWithdrawModal, setOpenWithdrawModal] = useState(false);
   const [asset, setAsset] = useState<any>(null);
 
+  const formatApyPercent = (apy: number | string) => {
+    const n = typeof apy === "string" ? parseFloat(apy) : apy;
+    if (!isFinite(n) || n === 0) return "0%";
+    const pct = n * 100;
+    if (pct > 0 && pct < 0.01) return "<0.01%";
+    return `${pct.toFixed(2)}%`;
+  };
+
   const suppliedPositions = useMemo(() => {
     return (
       user?.userReservesData
@@ -116,9 +124,14 @@ export function YourSupplies() {
   return (
     <div className="space-y-4">
       {/* Header with Total Value */}
-      <div className="flex justify-between items-center mb-4">
+      <div className="flex justify-between items-center mb-4 border-b border-gray-700/30 pb-4">
         <div>
-          <h2 className="text-lg font-semibold text-white">Your Supplies</h2>
+          <h2
+            className="text-lg font-semibold"
+            style={{ color: "var(--text-secondary)" }}
+          >
+            Your Supplies
+          </h2>
         </div>
         <FormControlLabel
           control={
@@ -129,7 +142,7 @@ export function YourSupplies() {
             />
           }
           label={
-            <span className="text-xs text-gray-500">
+            <span className="text-xs" style={{ color: "var(--accent-light)" }}>
               {showSmallBalance ? "Hide" : "Show"} dust
             </span>
           }
@@ -142,12 +155,30 @@ export function YourSupplies() {
         {suppliedPositions.map((position) => (
           <div
             key={position.reserve.underlyingAsset}
-            className="bg-gray-900/50 border border-gray-700/30 rounded-xl p-4 hover:border-gray-600/40 hover:bg-gray-900/70 transition-all duration-200"
+            className="relative border border-gray-700/30 rounded-xl p-4 hover:border-gray-600/40 transition-all duration-200"
+            style={{ backgroundColor: "var(--secondary-bg)" }}
           >
+            {/* APY tag in the top-right corner */}
+            <Tooltip title="Annual Percentage Yield" arrow placement="top">
+              <div
+                className="absolute top-0 right-0 rounded-bl-lg text-[10px] "
+                style={{
+                  backgroundColor: "var(--accent-light)",
+                  color: "var(--text-secondary)",
+                }}
+              >
+                <div className="px-2 py-1">
+                  {formatApyPercent(position.supplyAPY)}
+                </div>
+              </div>
+            </Tooltip>
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
               {/* Asset Info */}
               <div className="flex items-center gap-3 flex-1">
-                <div className="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center">
+                <div
+                  className="w-10 h-10 rounded-full flex items-center justify-center"
+                  style={{ backgroundColor: "var(--primary-bg)" }}
+                >
                   <Image
                     src={`/assets/${position.reserve.iconSymbol.toLowerCase()}.svg`}
                     alt={position.reserve.name}
@@ -163,19 +194,11 @@ export function YourSupplies() {
                       arrow
                       placement="top"
                     >
-                      <div className="font-medium text-white cursor-help text-sm">
+                      <div
+                        className="font-medium cursor-help text-sm"
+                        style={{ color: "var(--text-secondary)" }}
+                      >
                         {position.reserve.symbol}
-                      </div>
-                    </Tooltip>
-
-                    {/* APY Badge */}
-                    <Tooltip
-                      title="Annual Percentage Yield"
-                      arrow
-                      placement="top"
-                    >
-                      <div className="px-2 py-1 bg-green-500/10 text-green-400 text-xs font-medium rounded-md">
-                        {(parseFloat(position.supplyAPY) * 100).toFixed(2)}%
                       </div>
                     </Tooltip>
                   </div>
@@ -186,13 +209,19 @@ export function YourSupplies() {
                       arrow
                       placement="top"
                     >
-                      <div className="text-xs text-gray-400 cursor-help">
+                      <div
+                        className="text-xs cursor-help"
+                        style={{ color: "var(--text-secondary)" }}
+                      >
                         {roundToTokenDecimals(position.underlyingBalance, 4)}{" "}
                         {position.reserve.symbol}
                       </div>
                     </Tooltip>
 
-                    <div className="text-xs text-gray-500">
+                    <div
+                      className="text-xs"
+                      style={{ color: "var(--text-secondary)" }}
+                    >
                       $
                       {formatUsdAmount(
                         position.underlyingBalance,
@@ -210,7 +239,11 @@ export function YourSupplies() {
                     setOpenSupplyModal(true);
                     setAsset(position);
                   }}
-                  className="flex-1 sm:flex-none px-3 py-2 bg-gray-700 text-white text-xs font-medium rounded-lg hover:bg-gray-600 transition-colors"
+                  className="flex-1 sm:flex-none px-3 py-2 text-xs font-medium rounded-lg transition-colors"
+                  style={{
+                    backgroundColor: "var(--accent-light)",
+                    color: "var(--text-secondary)",
+                  }}
                 >
                   Supply
                 </button>
@@ -219,7 +252,12 @@ export function YourSupplies() {
                     setOpenWithdrawModal(true);
                     setAsset(position);
                   }}
-                  className="flex-1 sm:flex-none px-3 py-2 bg-gray-800 text-gray-300 text-xs font-medium rounded-lg hover:bg-gray-700 hover:text-white transition-all border border-gray-700/50"
+                  className="flex-1 sm:flex-none px-3 py-2 text-xs font-medium rounded-lg transition-all border"
+                  style={{
+                    backgroundColor: "var(--primary-bg)",
+                    color: "var(--text-primary)",
+                    borderColor: "var(--accent-light)",
+                  }}
                 >
                   Withdraw
                 </button>
@@ -229,12 +267,26 @@ export function YourSupplies() {
         ))}
 
         {suppliedPositions.length === 0 && (
-          <div className="text-center py-12 text-gray-400">
-            <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gray-800 flex items-center justify-center">
-              <div className="w-8 h-8 bg-gray-700 rounded-lg"></div>
+          <div
+            className="text-center py-12"
+            style={{ color: "var(--text-primary)" }}
+          >
+            <div
+              className="w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center"
+              style={{ backgroundColor: "var(--primary-bg)" }}
+            >
+              <div
+                className="w-8 h-8 rounded-lg"
+                style={{ backgroundColor: "var(--accent-light)" }}
+              ></div>
             </div>
-            <p className="text-sm text-gray-500">No supplies yet</p>
-            <p className="text-xs text-gray-600 mt-1">
+            <p className="text-sm" style={{ color: "var(--accent-light)" }}>
+              No supplies yet
+            </p>
+            <p
+              className="text-xs mt-1"
+              style={{ color: "var(--accent-light)" }}
+            >
               Start earning by supplying assets to the protocol
             </p>
           </div>
