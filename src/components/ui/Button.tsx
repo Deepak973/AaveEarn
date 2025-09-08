@@ -1,54 +1,29 @@
-interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  children: React.ReactNode;
-  isLoading?: boolean;
-  variant?: 'primary' | 'secondary' | 'outline';
-  size?: 'sm' | 'md' | 'lg';
+import { ButtonHTMLAttributes, forwardRef } from "react";
+import { cn } from "../../lib/utils";
+
+interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
+  variant?: "default" | "primary" | "secondary";
+  size?: "sm" | "md" | "lg";
 }
 
-export function Button({ 
-  children, 
-  className = "", 
-  isLoading = false, 
-  variant = 'primary',
-  size = 'md',
-  ...props 
-}: ButtonProps) {
-  const baseClasses = "btn";
-  
-  const variantClasses = {
-    primary: "btn-primary",
-    secondary: "btn-secondary", 
-    outline: "btn-outline"
-  };
-  
-  const sizeClasses = {
-    sm: "px-3 py-1.5 text-xs",
-    md: "px-4 py-2 text-sm",
-    lg: "px-6 py-3 text-base"
-  };
-
-  const fullWidthClasses = "w-full max-w-xs mx-auto block";
-  
-  const combinedClasses = [
-    baseClasses,
-    variantClasses[variant],
-    sizeClasses[size],
-    fullWidthClasses,
-    className
-  ].join(' ');
-
-  return (
-    <button
-      className={combinedClasses}
-      {...props}
-    >
-      {isLoading ? (
-        <div className="flex items-center justify-center">
-          <div className="spinner-primary h-5 w-5" />
-        </div>
-      ) : (
-        children
-      )}
-    </button>
-  );
-}
+export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
+  ({ className, variant = "default", size = "md", ...props }, ref) => {
+    return (
+      <button
+        ref={ref}
+        className={cn(
+          "inline-flex items-center justify-center rounded-lg font-medium transition-colors",
+          "focus:outline-none focus:ring-2 focus:ring-offset-2",
+          "disabled:opacity-50 disabled:pointer-events-none",
+          {
+            "px-4 py-2 text-sm": size === "sm",
+            "px-6 py-3 text-base": size === "md",
+            "px-8 py-4 text-lg": size === "lg",
+          },
+          className
+        )}
+        {...props}
+      />
+    );
+  }
+);
