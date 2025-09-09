@@ -128,7 +128,7 @@ export function SupplyModal({ onClose, underlyingAsset }: SupplyModalProps) {
       showAlert({
         kind: Alert_Kind__Enum_Type.ERROR,
         message: `Failed to approve ${symbol}: ${
-          error instanceof Error ? error.message.slice(50) : "Unknown error"
+          error instanceof Error ? error.message.slice(0, 50) : "Unknown error"
         }`,
       });
     },
@@ -167,7 +167,7 @@ export function SupplyModal({ onClose, underlyingAsset }: SupplyModalProps) {
       showAlert({
         kind: Alert_Kind__Enum_Type.ERROR,
         message: `Failed to supply ${symbol}: ${
-          error instanceof Error ? error.message.slice(50) : "Unknown error"
+          error instanceof Error ? error.message.slice(0, 50) : "Unknown error"
         }`,
       });
     },
@@ -201,7 +201,7 @@ export function SupplyModal({ onClose, underlyingAsset }: SupplyModalProps) {
       showAlert({
         kind: Alert_Kind__Enum_Type.ERROR,
         message: `Failed to supply ${symbol}: ${
-          error instanceof Error ? error.message.slice(50) : "Unknown error"
+          error instanceof Error ? error.message.slice(0, 50) : "Unknown error"
         }`,
       });
     },

@@ -1,9 +1,15 @@
 "use client";
-import { useState, useRef } from "react";
+import { useState, useRef, useCallback } from "react";
 import Image from "next/image";
 import { SupplyAssetsList } from "@/components/ui/supply/SupplyAssetsList";
 import { YourSupplies } from "@/components/ui/supply/YourSupplies";
-import { useAccount, useConnect, useDisconnect } from "wagmi";
+import {
+  useAccount,
+  useConnect,
+  useDisconnect,
+  useSwitchChain,
+  useChainId,
+} from "wagmi";
 import {
   Tabs,
   Tab,
@@ -22,10 +28,10 @@ import {
 import { styled } from "@mui/material/styles";
 import { Close } from "@mui/icons-material";
 import { useAppDataContext } from "~/hooks/app-data-provider/useAppDataProvider";
-import { useRootStore } from "~/store/root";
 import { useMiniApp } from "@neynar/react";
 import { useDetectClickOutside } from "~/hooks/useDetectClickOutside";
 import { truncateAddress } from "../lib/truncateAddress";
+
 // Custom styled components
 const CustomTabs = styled(Tabs)({
   "& .MuiTabs-indicator": {
@@ -77,6 +83,11 @@ export default function HomePage() {
   const profileRef = useRef<HTMLDivElement | null>(null);
   useDetectClickOutside(profileRef, () => setProfileOpen(false));
   const [copied, setCopied] = useState(false);
+  const { switchChain } = useSwitchChain();
+  const handleSwitchChain = useCallback(() => {
+    switchChain({ chainId: 8453 });
+  }, [switchChain]);
+  const chainId = useChainId();
 
   const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
     setCurrentTab(newValue);
@@ -135,6 +146,54 @@ export default function HomePage() {
           }}
         >
           Connect Wallet
+        </Button>
+      </div>
+    );
+  }
+
+  if (isConnected && chainId !== 8453) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen gap-6">
+        <div className="text-center">
+          <div className="w-10 h-10 rounded-lg flex items-center justify-center mx-auto mb-4 bg-[#111318] border border-subtle">
+            <Image src="/logo.png" alt="Logo" width={40} height={40} />
+          </div>
+
+          <h1 className="text-xl font-semibold text-text-secondary mb-2">
+            Wrong Network
+          </h1>
+
+          <p className="text-text-primary mb-6 text-sm">
+            Please switch to Base network to use Earn on Aave
+          </p>
+        </div>
+
+        {context?.user?.pfpUrl && (
+          <div className="absolute top-4 right-4">
+            <img
+              src={context.user.pfpUrl}
+              alt="Profile"
+              className="w-10 h-10 rounded-lg border border-subtle object-cover"
+            />
+          </div>
+        )}
+
+        <Button
+          variant="contained"
+          size="medium"
+          onClick={handleSwitchChain}
+          sx={{
+            background: "#1f2937",
+            color: "#e5e7eb",
+            px: 3,
+            py: 1.25,
+            fontSize: "0.875rem",
+            fontWeight: 500,
+            borderRadius: "8px",
+            "&:hover": { background: "#2b3444" },
+          }}
+        >
+          Switch to Base
         </Button>
       </div>
     );
