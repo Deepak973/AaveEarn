@@ -7,15 +7,20 @@ export async function GET(request: NextRequest) {
   return new ImageResponse(
     (
       <div tw="flex h-full w-full flex-col justify-center items-center relative bg-primary">
-        <div tw="flex w-96 h-96 rounded-full overflow-hidden mb-8 border-8 border-white">
-          <img
-            src={"https://farcastersnake.vercel.app/logo.png"}
-            alt="Farcaster Snake"
-            tw="w-full h-full object-cover"
-          />
-        </div>
+        {/* Background image */}
+        <div
+          tw="absolute inset-0 w-full h-full"
+          style={{
+            backgroundImage: "url(https://aave-earn.vercel.app/splash.png)",
+            backgroundSize: "cover",
+            backgroundPosition: "center",
+          }}
+        />
 
-        <h1 tw="text-8xl text-purple-500">Eat, Drink, Poop Repeat</h1>
+        {/* Overlay text */}
+        <h1 tw="text-white text-center text-4xl font-bold relative z-10">
+          EOA
+        </h1>
       </div>
     ),
     {
