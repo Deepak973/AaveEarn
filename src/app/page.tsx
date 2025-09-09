@@ -27,6 +27,23 @@ import { useRootStore } from "~/store/root";
 import { useMiniApp } from "@neynar/react";
 import { useDetectClickOutside } from "~/hooks/useDetectClickOutside";
 import { truncateAddress } from "../lib/truncateAddress";
+import { APP_DESCRIPTION, APP_NAME, APP_OG_IMAGE_URL } from "~/lib/constants";
+import { Metadata } from "next";
+import { getMiniAppEmbedMetadata } from "~/lib/utils";
+
+export async function generateMetadata(): Promise<Metadata> {
+  return {
+    title: APP_NAME,
+    openGraph: {
+      title: APP_NAME,
+      description: APP_DESCRIPTION,
+      images: [APP_OG_IMAGE_URL],
+    },
+    other: {
+      "fc:frame": JSON.stringify(getMiniAppEmbedMetadata()),
+    },
+  };
+}
 
 // Custom styled components
 const CustomTabs = styled(Tabs)({
