@@ -1,35 +1,21 @@
 import { ImageResponse } from "next/og";
-import { join } from "node:path";
-import { readFile } from "node:fs/promises";
+import { NextRequest } from "next/server";
 
 export const dynamic = "force-dynamic";
 
-export default async function Image() {
-  const logoData = await readFile(join(process.cwd(), "public/splash.png"));
-  const logoSrc = Uint8Array.from(logoData).buffer;
-
+export async function GET(request: NextRequest) {
   return new ImageResponse(
     (
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          width: "100%",
-          height: "100%",
-          backgroundColor: "#111",
-          flexDirection: "column",
-        }}
-      >
-        <img
-          src={logoSrc}
-          width="600"
-          height="400"
-          style={{ objectFit: "cover" }}
-        />
-        <h1 style={{ color: "white", fontSize: 48, fontWeight: "bold" }}>
-          EOA
-        </h1>
+      <div tw="flex h-full w-full flex-col justify-center items-center relative bg-black">
+        <div tw="flex w-96 h-96 rounded-full overflow-hidden mb-8 border-8 border-white">
+          <img
+            src={"https://aave-earn.vercel.app/logo.png"}
+            alt="Farcaster Snake"
+            tw="w-full h-full object-cover"
+          />
+        </div>
+
+        <h1 tw="text-8xl text-white">EOA</h1>
       </div>
     ),
     {
