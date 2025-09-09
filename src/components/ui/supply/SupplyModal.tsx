@@ -210,14 +210,6 @@ export function SupplyModal({ onClose, underlyingAsset }: SupplyModalProps) {
   const isLoading = approvalLoading || supplyLoading || wrappedTokenLoading;
 
   useEffect(() => {
-    const original = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.body.style.overflow = original;
-    };
-  }, []);
-
-  useEffect(() => {
     setMounted(true);
     const t = setTimeout(() => setAnimateIn(true), 10);
     return () => clearTimeout(t);

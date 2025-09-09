@@ -17,7 +17,7 @@ import {
 import { InputBase, Tooltip } from "@mui/material";
 import { API_ETH_MOCK_ADDRESS } from "@aave/contract-helpers";
 import { roundToTokenDecimals } from "~/utils/utils";
-import { getMaxAmountAvailableToSupply } from "~/utils/getMaxAmountAvailableToSupply";
+
 import { USD_DECIMALS, valueToBigNumber } from "@aave/math-utils";
 import { AlertsContext } from "~/app/AllertProvider";
 import { Alert_Kind__Enum_Type } from "~/app/AllertProvider";
@@ -137,16 +137,11 @@ export function WithdrawModal({ onClose, underlyingAsset }: SupplyModalProps) {
         kind: Alert_Kind__Enum_Type.SUCCESS,
         message: `${symbol} withdrawn as native ETH successfully!`,
       });
-      queryClient.invalidateQueries({
-        queryKey: queryKeysFactory.poolReservesDataHumanized(currentMarketData),
-      });
-      queryClient.invalidateQueries({
-        queryKey: queryKeysFactory.userPoolReservesDataHumanized(
-          userAddress as `0x${string}`,
-          currentMarketData
-        ),
-      });
-      queryClient.invalidateQueries({ queryKey: queryKeysFactory.pool });
+      setTimeout(() => {
+        queryClient.invalidateQueries({
+          queryKey: queryKeysFactory.pool,
+        });
+      }, 1000); // 1 second delay
       setWithdrawSucceeded(true);
     },
     onError: (error) => {
@@ -207,16 +202,11 @@ export function WithdrawModal({ onClose, underlyingAsset }: SupplyModalProps) {
         kind: Alert_Kind__Enum_Type.SUCCESS,
         message: `${symbol} withdraw successfully!`,
       });
-      queryClient.invalidateQueries({
-        queryKey: queryKeysFactory.poolReservesDataHumanized(currentMarketData),
-      });
-      queryClient.invalidateQueries({
-        queryKey: queryKeysFactory.userPoolReservesDataHumanized(
-          userAddress as `0x${string}`,
-          currentMarketData
-        ),
-      });
-      queryClient.invalidateQueries({ queryKey: queryKeysFactory.pool });
+      setTimeout(() => {
+        queryClient.invalidateQueries({
+          queryKey: queryKeysFactory.pool,
+        });
+      }, 1000); // 1 second delay
       setWithdrawSucceeded(true);
     },
     onError: (error) => {
@@ -333,7 +323,7 @@ export function WithdrawModal({ onClose, underlyingAsset }: SupplyModalProps) {
                 <div className="flex items-center gap-3">
                   <div className="w-8 h-8 rounded-md bg-[#0e1015] flex items-center justify-center">
                     <Image
-                      src={`/assets/${symbol}.svg`}
+                      src={`/assets/${symbol.toLowerCase()}.svg`}
                       alt={poolReserve.name}
                       width={20}
                       height={20}
