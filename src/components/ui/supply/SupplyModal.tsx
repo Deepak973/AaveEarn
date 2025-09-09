@@ -26,6 +26,8 @@ import React from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { createPortal } from "react-dom";
 import { ShareButton } from "../Share";
+import { APP_URL } from "~/lib/constants";
+import { useMiniApp } from "@neynar/react";
 
 interface CustomProps {
   onChange: (event: { target: { name: string; value: string } }) => void;
@@ -75,6 +77,7 @@ export function SupplyModal({ onClose, underlyingAsset }: SupplyModalProps) {
   const poolAddress = useRootStore(
     (store) => store.currentMarketData.addresses.LENDING_POOL
   );
+  const { context } = useMiniApp();
   const wethGatewayAddress = useRootStore(
     (store) => store.currentMarketData.addresses.WETH_GATEWAY
   );
@@ -455,6 +458,7 @@ export function SupplyModal({ onClose, underlyingAsset }: SupplyModalProps) {
               cast={{
                 text: shareText,
                 bestFriends: false,
+                embeds: [`${APP_URL}/share/${context?.user?.fid || ""}`],
               }}
             />
             <button
