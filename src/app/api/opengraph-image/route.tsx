@@ -1,24 +1,33 @@
 import { ImageResponse } from "next/og";
-import { NextRequest } from "next/server";
+import { join } from "node:path";
+import { readFile } from "node:fs/promises";
 
 export const dynamic = "force-dynamic";
 
-export async function GET(request: NextRequest) {
+export default async function Image() {
+  const logoData = await readFile(join(process.cwd(), "public/splash.png"));
+  const logoSrc = Uint8Array.from(logoData).buffer;
+
   return new ImageResponse(
     (
-      <div tw="flex h-full w-full flex-col justify-center items-center relative bg-primary">
-        {/* Background image */}
-        <div
-          tw="absolute inset-0 w-full h-full"
-          style={{
-            backgroundImage: "url(https://aave-earn.vercel.app/splash.png)",
-            backgroundSize: "cover",
-            backgroundPosition: "center",
-          }}
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          width: "100%",
+          height: "100%",
+          backgroundColor: "#111",
+          flexDirection: "column",
+        }}
+      >
+        <img
+          src={logoSrc}
+          width="600"
+          height="400"
+          style={{ objectFit: "cover" }}
         />
-
-        {/* Overlay text */}
-        <h1 tw="text-white text-center text-4xl font-bold relative z-10">
+        <h1 style={{ color: "white", fontSize: 48, fontWeight: "bold" }}>
           EOA
         </h1>
       </div>
