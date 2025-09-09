@@ -296,7 +296,7 @@ export function SupplyModal({ onClose, underlyingAsset }: SupplyModalProps) {
   const shareText = `Hey I just supplied ${roundToTokenDecimals(
     amount || "0",
     decimals
-  )} ${symbol} on Aave using Earn on Aave which will give me ${apyPercent.toFixed(
+  )} ${symbol} on Aave using EOA(Earn on Aave) which will give me ${apyPercent.toFixed(
     2
   )}% APY. Make your tokens grow, don't keep them idle.`;
 
