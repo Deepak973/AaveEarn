@@ -153,7 +153,7 @@ export function WithdrawModal({ onClose, underlyingAsset }: SupplyModalProps) {
       showAlert({
         kind: Alert_Kind__Enum_Type.ERROR,
         message: `Failed to withdraw as ETH: ${
-          error instanceof Error ? error.message : "Unknown error"
+          error instanceof Error ? error.message.slice(50) : "Unknown error"
         }`,
       });
     },
@@ -185,7 +185,7 @@ export function WithdrawModal({ onClose, underlyingAsset }: SupplyModalProps) {
       showAlert({
         kind: Alert_Kind__Enum_Type.ERROR,
         message: `Failed to approve a${symbol}: ${
-          error instanceof Error ? error.message : "Unknown error"
+          error instanceof Error ? error.message.slice(50) : "Unknown error"
         }`,
       });
     },
@@ -223,7 +223,7 @@ export function WithdrawModal({ onClose, underlyingAsset }: SupplyModalProps) {
       showAlert({
         kind: Alert_Kind__Enum_Type.ERROR,
         message: `Failed to withdraw ${symbol}: ${
-          error instanceof Error ? error.message : "Unknown error"
+          error instanceof Error ? error.message.slice(50) : "Unknown error"
         }`,
       });
     },

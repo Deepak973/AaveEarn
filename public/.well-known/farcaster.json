@@ -1,0 +1,18 @@
+{
+  "frame": {
+    "name": "EOA",
+    "version": "1",
+    "iconUrl": "https://aave-earn.vercel.app/icon.png",
+    "homeUrl": "https://aave-earn.vercel.app",
+    "splashImageUrl": "https://aave-earn.vercel.app/splash.png",
+    "splashBackgroundColor": "#0b0c0f",
+    "subtitle": "Earn on Aave",
+    "description": "Put your crypto to work. Supply assets to earn interest from borrowers on Aave.",
+    "primaryCategory": "finance"
+  },
+  "accountAssociation": {
+    "header": "eyJmaWQiOjY3MzEyNiwidHlwZSI6ImF1dGgiLCJrZXkiOiIweDQ2RkU3ZDUxRTNiOTA4MENDY0VDMTJBNjc1ZjYzQzg5MkEyYzBEM0YifQ",
+    "payload": "eyJkb21haW4iOiJhYXZlLWVhcm4udmVyY2VsLmFwcCJ9",
+    "signature": "Obk1UWkkzvfIUVdAqqFAfwa9U+MpnK3xp5690khGuu4ER8DV4LCbEvmFltFmlTJRAH2xYO/7BEKhEvdN3AkcdBs="
+  }
+}
