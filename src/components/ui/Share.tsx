@@ -120,10 +120,9 @@ export function ShareButton({
     <Button
       onClick={handleShare}
       className={className}
-      isLoading={isLoading || isProcessing}
-      disabled={isLoadingBestFriends}
+      disabled={isLoading || isProcessing || isLoadingBestFriends}
     >
-      {buttonText}
+      {isLoading || isProcessing ? "Loading..." : buttonText}
     </Button>
   );
 }
