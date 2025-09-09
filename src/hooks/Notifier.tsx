@@ -18,6 +18,14 @@ export const Notifier = () => {
     // Dismiss all existing toasts before showing a new one
     toast.dismiss();
 
+    const baseStyle = {
+      background: "var(--secondary-bg)",
+      color: "var(--text-secondary)",
+      border: "1px solid rgba(255,255,255,0.06)",
+      borderRadius: 10,
+      boxShadow: "0 8px 24px rgba(0,0,0,0.3)",
+    } as React.CSSProperties;
+
     const options: ToastOptions = {
       position: "top-right",
       autoClose:
@@ -26,6 +34,11 @@ export const Notifier = () => {
       closeOnClick: true,
       pauseOnHover: true,
       draggable: false,
+      style: baseStyle,
+      className: "themed-toast",
+      progressClassName: "themed-progress",
+      icon: false,
+      closeButton: false,
     };
 
     // Display based on kind
@@ -57,12 +70,30 @@ export const Notifier = () => {
   }, [notification, clearAlert]);
 
   return (
-    <ToastContainer
-      theme="colored"
-      limit={1} // Extra protection to allow only one toast
-      closeOnClick
-      pauseOnFocusLoss={false}
-      pauseOnHover
-    />
+    <>
+      <ToastContainer
+        theme="dark"
+        limit={1}
+        closeOnClick
+        pauseOnFocusLoss={false}
+        pauseOnHover
+        toastClassName="themed-toast"
+        progressClassName="themed-progress"
+      />
+      <style jsx global>{`
+        .themed-toast {
+          background: var(--secondary-bg) !important;
+          color: var(--text-secondary) !important;
+          border: 1px solid rgba(255, 255, 255, 0.06) !important;
+          border-radius: 10px !important;
+        }
+        .Toastify__toast-body {
+          font-size: 0.85rem !important;
+        }
+        .themed-progress {
+          background: #94b9ff !important;
+        }
+      `}</style>
+    </>
   );
 };

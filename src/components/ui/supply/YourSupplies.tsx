@@ -11,6 +11,7 @@ import { roundToTokenDecimals } from "~/utils/utils";
 import { amountToUsd } from "~/utils/utils";
 import { SupplyModal } from "./SupplyModal";
 import { WithdrawModal } from "../withdraw/WithdrawModal";
+import TokenInfoModal from "./TokenInfoModal";
 
 // Helper function to check if asset should be hidden
 const isAssetHidden = (market: string, asset: string) => {
@@ -52,6 +53,8 @@ export function YourSupplies() {
   const [openSupplyModal, setOpenSupplyModal] = useState(false);
   const [openWithdrawModal, setOpenWithdrawModal] = useState(false);
   const [asset, setAsset] = useState<any>(null);
+  const [isTokenInfoModalOpen, setIsTokenInfoModalOpen] = useState(false);
+  const [selectedReserve, setSelectedReserve] = useState<any>(null);
 
   const formatApyPercent = (apy: number | string) => {
     const n = typeof apy === "string" ? parseFloat(apy) : apy;
@@ -155,16 +158,16 @@ export function YourSupplies() {
         {suppliedPositions.map((position) => (
           <div
             key={position.reserve.underlyingAsset}
-            className="relative border border-gray-700/30 rounded-xl p-4 hover:border-gray-600/40 transition-all duration-200"
+            className="relative border border-gray-300/30 rounded-xl p-4 hover:border-gray-600/40 transition-all duration-200"
             style={{ backgroundColor: "var(--secondary-bg)" }}
           >
             {/* APY tag in the top-right corner */}
             <Tooltip title="Annual Percentage Yield" arrow placement="top">
               <div
-                className="absolute top-0 right-0 rounded-bl-lg text-[10px] "
+                className="absolute top-0 right-0 rounded-bl-lg text-[12px] "
                 style={{
-                  backgroundColor: "var(--accent-light)",
-                  color: "var(--text-secondary)",
+                  backgroundColor: "#1350eb",
+                  color: "white",
                 }}
               >
                 <div className="px-2 py-1">
@@ -201,6 +204,29 @@ export function YourSupplies() {
                         {position.reserve.symbol}
                       </div>
                     </Tooltip>
+                    <button
+                      onClick={() => {
+                        setSelectedReserve({
+                          ...position.reserve,
+                          walletBalance: position.underlyingBalance,
+                          walletBalanceUSD: formatUsdAmount(
+                            position.underlyingBalance,
+                            position.reserve
+                              .formattedPriceInMarketReferenceCurrency
+                          ),
+                        } as any);
+                        setIsTokenInfoModalOpen(true);
+                      }}
+                      aria-label="token info"
+                      className="text-xs px-2 py-1 rounded border"
+                      style={{
+                        borderColor: "rgba(59,130,246,0.3)",
+                        color: "#60A5FA",
+                        backgroundColor: "rgba(59,130,246,0.08)",
+                      }}
+                    >
+                      Info
+                    </button>
                   </div>
 
                   <div className="flex items-center gap-4 mt-1">
@@ -239,25 +265,16 @@ export function YourSupplies() {
                     setOpenSupplyModal(true);
                     setAsset(position);
                   }}
-                  className="flex-1 sm:flex-none px-3 py-2 text-xs font-medium rounded-lg transition-colors"
-                  style={{
-                    backgroundColor: "var(--accent-light)",
-                    color: "var(--text-secondary)",
-                  }}
+                  className="flex-1 sm:flex-none px-3 py-2 text-xs font-medium rounded-lg transition-colors bg-[#94b9ff] text-black hover:bg-[#7aa6ff]"
                 >
-                  Supply
+                  Supply More
                 </button>
                 <button
                   onClick={() => {
                     setOpenWithdrawModal(true);
                     setAsset(position);
                   }}
-                  className="flex-1 sm:flex-none px-3 py-2 text-xs font-medium rounded-lg transition-all border"
-                  style={{
-                    backgroundColor: "var(--primary-bg)",
-                    color: "var(--text-primary)",
-                    borderColor: "var(--accent-light)",
-                  }}
+                  className="flex-1 sm:flex-none px-3 py-2 text-xs font-medium rounded-lg transition-colors border border-[#94b9ff] bg-[var(--primary-bg)] text-[var(--text-primary)] hover:bg-[#1a1d29]"
                 >
                   Withdraw
                 </button>
@@ -305,6 +322,13 @@ export function YourSupplies() {
           />
         )}
       </div>
+
+      <TokenInfoModal
+        open={isTokenInfoModalOpen}
+        onClose={() => setIsTokenInfoModalOpen(false)}
+        selectedReserve={selectedReserve}
+        marketReferencePriceInUsd={marketReferencePriceInUsd}
+      />
     </div>
   );
 }

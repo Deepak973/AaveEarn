@@ -1,12 +1,9 @@
 import type { Metadata } from "next";
 
 import "~/app/globals.css";
-import { Providers } from "~/app/providers";
-import { AppDataProvider } from "~/hooks/app-data-provider/useAppDataProvider";
 import { APP_NAME, APP_DESCRIPTION } from "~/lib/constants";
-import { SharedDependenciesProvider } from "~/ui-config/SharedDependenciesProvider";
-import { AlertsProvider } from "./AllertProvider";
-import { Notifier } from "~/hooks/Notifier";
+
+import { ProvidersWrapper } from "./ProviderWrapper";
 
 export const metadata: Metadata = {
   title: APP_NAME,
@@ -21,14 +18,7 @@ export default async function RootLayout({
   return (
     <html lang="en">
       <body>
-        <Providers>
-          <SharedDependenciesProvider>
-            <AlertsProvider>
-              <Notifier />
-              <AppDataProvider>{children}</AppDataProvider>
-            </AlertsProvider>
-          </SharedDependenciesProvider>
-        </Providers>
+        <ProvidersWrapper>{children}</ProvidersWrapper>
       </body>
     </html>
   );

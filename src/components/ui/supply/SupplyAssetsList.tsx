@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import Image from "next/image";
-import { formatUnits } from "ethers/lib/utils";
 import { useRootStore } from "~/store/root";
 import {
   ComputedReserveData,
@@ -13,8 +12,10 @@ import { fetchIconSymbolAndName } from "~/ui-config/reservePatches";
 import { BigNumber } from "bignumber.js";
 import { Tooltip, Switch, FormControlLabel } from "@mui/material";
 import { styled } from "@mui/material/styles";
+import { Info } from "@mui/icons-material";
 import { roundToTokenDecimals } from "~/utils/utils";
 import { SupplyModal } from "./SupplyModal";
+import TokenInfoModal from "./TokenInfoModal";
 
 // Custom styled switch with refined theme
 const CustomSwitch = styled(Switch)(({ theme }) => ({
@@ -34,11 +35,22 @@ const CustomSwitch = styled(Switch)(({ theme }) => ({
   },
 }));
 
+// Local type extending reserve data with wallet-related fields
+type SupplyReserve = ComputedReserveData & {
+  walletBalance?: string;
+  walletBalanceUSD?: string;
+  availableToDeposit?: string;
+  availableToDepositUSD?: string;
+};
+
 export function SupplyAssetsList() {
   const [showZeroBalance, setShowZeroBalance] = useState(true);
+  const [isTokenInfoModalOpen, setIsTokenInfoModalOpen] = useState(false);
+  const [selectedReserve, setSelectedReserve] = useState<SupplyReserve | null>(
+    null
+  );
   const currentMarketData = useRootStore((store) => store.currentMarketData);
   const {
-    user,
     reserves,
     marketReferencePriceInUsd,
     loading: loadingReserves,
@@ -46,7 +58,7 @@ export function SupplyAssetsList() {
   const { walletBalances, loading } = useWalletBalances(currentMarketData);
 
   const [openSupplyModal, setOpenSupplyModal] = useState(false);
-  const [asset, setAsset] = useState<ComputedReserveData | null>(null);
+  const [asset, setAsset] = useState<SupplyReserve | null>(null);
 
   useEffect(() => {
     if (!openSupplyModal) return;
@@ -57,6 +69,16 @@ export function SupplyAssetsList() {
     };
   }, [openSupplyModal]);
 
+  const handleOpenTokenInfoModal = (reserve: SupplyReserve) => {
+    setSelectedReserve(reserve);
+    setIsTokenInfoModalOpen(true);
+  };
+
+  const handleCloseTokenInfoModal = () => {
+    setIsTokenInfoModalOpen(false);
+    setSelectedReserve(null);
+  };
+
   const formatApyPercent = (apy: number | string) => {
     const n = typeof apy === "string" ? parseFloat(apy) : apy;
     if (!isFinite(n) || n === 0) return "0%";
@@ -65,7 +87,7 @@ export function SupplyAssetsList() {
     return `${pct.toFixed(2)}%`;
   };
 
-  const tokensToSupply =
+  const tokensToSupply: SupplyReserve[] =
     reserves && reserves.length > 0
       ? reserves
           .filter(
@@ -163,12 +185,12 @@ export function SupplyAssetsList() {
           .flat()
       : [];
 
-  console.log("tokensToSupply", tokensToSupply);
-
   const sortedSupplyReserves =
     tokensToSupply.length > 0
       ? tokensToSupply.sort((a, b) =>
-          +a.walletBalanceUSD > +b.walletBalanceUSD ? -1 : 1
+          Number(a.walletBalanceUSD ?? "0") > Number(b.walletBalanceUSD ?? "0")
+            ? -1
+            : 1
         )
       : [];
 
@@ -182,9 +204,11 @@ export function SupplyAssetsList() {
           )
       : [];
 
+  console.log(filteredReserves, "filteredReserves");
+
   if (loadingReserves || loading) {
     return (
-      <div className="text-center py-12 text-gray-400">
+      <div className="text-center py-12 text-text-primary">
         <p className="text-sm">Loading assets...</p>
       </div>
     );
@@ -192,19 +216,14 @@ export function SupplyAssetsList() {
 
   return (
     <div className="space-y-4">
-      {/* Header with Toggle */}
-      <div className="flex justify-between items-center mb-4">
+      <div className="flex justify-between items-center mb-4 border-b border-gray-700/30 pb-4">
         <div>
           <h2
             className="text-lg font-semibold"
             style={{ color: "var(--text-secondary)" }}
           >
-            Assets to Supply
+            Supply Assets
           </h2>
-          <p className="text-sm mt-1" style={{ color: "var(--text-primary)" }}>
-            {filteredReserves.length} asset
-            {filteredReserves.length !== 1 ? "s" : ""} available
-          </p>
         </div>
         <FormControlLabel
           control={
@@ -223,21 +242,19 @@ export function SupplyAssetsList() {
         />
       </div>
 
-      {/* Assets List */}
       <div className="space-y-3">
         {filteredReserves.map((reserve) => (
           <div
             key={reserve.underlyingAsset}
-            className="relative border border-gray-700/30 rounded-xl p-4 hover:border-gray-600/40 transition-all duration-200"
+            className="relative border border-gray-300/30 rounded-xl p-4 hover:border-gray-600/40 transition-all duration-200"
             style={{ backgroundColor: "var(--secondary-bg)" }}
           >
-            {/* APY tag in the top-right corner */}
             <Tooltip title="Annual Percentage Yield" arrow placement="top">
               <div
-                className="absolute top-0 right-0 rounded-bl-lg text-[10px] font-medium"
+                className="absolute top-0 right-0 rounded-bl-lg text-[10px] text-[12px] "
                 style={{
-                  backgroundColor: "var(--accent-light)",
-                  color: "var(--text-secondary)",
+                  backgroundColor: "#1350eb",
+                  color: "white",
                 }}
               >
                 <div className="px-2 py-1">
@@ -246,9 +263,7 @@ export function SupplyAssetsList() {
               </div>
             </Tooltip>
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-              {/* Asset Row */}
               <div className="flex items-center gap-3 flex-1">
-                {/* Token Icon */}
                 <div
                   className="w-10 h-10 rounded-full flex items-center justify-center"
                   style={{ backgroundColor: "var(--primary-bg)" }}
@@ -261,7 +276,6 @@ export function SupplyAssetsList() {
                   />
                 </div>
 
-                {/* Token Info */}
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-3">
                     <Tooltip
@@ -276,11 +290,25 @@ export function SupplyAssetsList() {
                         {reserve.symbol}
                       </div>
                     </Tooltip>
+                    <button
+                      onClick={() => handleOpenTokenInfoModal(reserve)}
+                      aria-label="token info"
+                      className="text-xs px-2 py-1 rounded border"
+                      style={{
+                        borderColor: "rgba(59,130,246,0.3)",
+                        color: "#60A5FA",
+                        backgroundColor: "rgba(59,130,246,0.08)",
+                      }}
+                    >
+                      Info
+                    </button>
                   </div>
 
                   <div className="flex items-center gap-4 mt-1">
                     <Tooltip
-                      title={`${reserve.walletBalance} ${reserve.symbol}`}
+                      title={`${reserve.walletBalance ?? "0"} ${
+                        reserve.symbol
+                      }`}
                       arrow
                       placement="top"
                     >
@@ -288,8 +316,7 @@ export function SupplyAssetsList() {
                         className="text-xs cursor-help"
                         style={{ color: "var(--text-secondary)" }}
                       >
-                        Balance:{" "}
-                        {roundToTokenDecimals(reserve.walletBalance, 4)}{" "}
+                        {roundToTokenDecimals(reserve.walletBalance ?? "0", 4)}{" "}
                         {reserve.symbol}
                       </div>
                     </Tooltip>
@@ -298,13 +325,12 @@ export function SupplyAssetsList() {
                       className="text-xs"
                       style={{ color: "var(--text-secondary)" }}
                     >
-                      ${(+reserve.walletBalanceUSD).toFixed(2)}
+                      ${(+(reserve.walletBalanceUSD ?? "0")).toFixed(2)}
                     </div>
                   </div>
                 </div>
               </div>
 
-              {/* Action Button */}
               <div className="w-full sm:w-auto">
                 <button
                   onClick={() => {
@@ -315,11 +341,13 @@ export function SupplyAssetsList() {
                     !reserve.walletBalance ||
                     parseFloat(reserve.walletBalance) <= 0
                   }
-                  className="w-full sm:w-auto px-4 py-2 text-xs font-medium rounded-lg transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-                  style={{
-                    backgroundColor: "var(--accent-light)",
-                    color: "var(--text-secondary)",
-                  }}
+                  className={`w-full sm:w-auto px-4 py-2 text-xs font-medium rounded-lg transition-colors
+                  ${
+                    !reserve.walletBalance ||
+                    parseFloat(reserve.walletBalance) <= 0
+                      ? "bg-gray-500 text-gray-300 cursor-not-allowed hover:bg-gray-500"
+                      : "bg-[#94b9ff] text-black hover:bg-[#7aa6ff]"
+                  }`}
                 >
                   Supply
                 </button>
@@ -347,7 +375,7 @@ export function SupplyAssetsList() {
             </p>
             <p
               className="text-xs mt-1"
-              style={{ color: "var(--accent-light)" }}
+              style={{ color: "var(--text-primary)" }}
             >
               {showZeroBalance
                 ? "Connect your wallet or switch network to get started"
@@ -356,6 +384,13 @@ export function SupplyAssetsList() {
           </div>
         )}
       </div>
+
+      <TokenInfoModal
+        open={isTokenInfoModalOpen}
+        onClose={handleCloseTokenInfoModal}
+        selectedReserve={selectedReserve}
+        marketReferencePriceInUsd={marketReferencePriceInUsd}
+      />
 
       {openSupplyModal && asset?.underlyingAsset && (
         <SupplyModal

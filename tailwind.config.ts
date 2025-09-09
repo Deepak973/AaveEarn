@@ -25,9 +25,9 @@ const config: Config = {
         ],
       },
       colors: {
-        primary: "#020300",
-        secondary: "#36311f",
-        accent: "#A1E3F9",
+        primary: "#0b0c0f",
+        secondary: "#15171c",
+        accent: "#3b82f6",
         "primary-bg": "var(--primary-bg)",
         "secondary-bg": "var(--secondary-bg)",
         "accent-light": "var(--accent-light)",
@@ -44,6 +44,7 @@ const config: Config = {
         secondary: "var(--text-secondary)",
       },
       borderColor: {
+        subtle: "rgba(255,255,255,0.06)",
         transparent: "transparent",
       },
     },
