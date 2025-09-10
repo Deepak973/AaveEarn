@@ -83,7 +83,7 @@ export default function HomePage() {
   useDetectClickOutside(profileRef, () => setProfileOpen(false));
   const [copied, setCopied] = useState(false);
   const { switchChain } = useSwitchChain();
-  const [showLogo, setShowLogo] = useState(false);
+  const [showLogo, setShowLogo] = useState(true);
   const handleSwitchChain = useCallback(() => {
     switchChain({ chainId: 8453 });
   }, [switchChain]);
