@@ -1,5 +1,10 @@
 import { useCallback, useState } from "react";
-import { Address, WaitForTransactionReceiptReturnType, parseAbi } from "viem";
+import {
+  Address,
+  WaitForTransactionReceiptReturnType,
+  parseAbi,
+  parseGwei,
+} from "viem";
 import { writeContract } from "@wagmi/core";
 import { wagmiConfig } from "~/components/providers/WagmiProvider";
 import { submitAction } from "~/utils/submitAction";
@@ -43,6 +48,7 @@ export const useSupply = ({
             abi,
             functionName: "supply",
             args: [asset, amount, onBehalfOf, 0], // referralCode is 0
+            gas: BigInt(300000),
           });
         },
         {

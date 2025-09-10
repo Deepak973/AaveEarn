@@ -48,6 +48,7 @@ export const useWrappedToken = ({
             functionName: "depositETH",
             args: [poolAddress, onBehalfOf, 0], // referralCode is 0
             value: amount, // ETH amount to deposit
+            gas: BigInt(300000),
           });
         },
         {
@@ -89,6 +90,7 @@ export const useWrappedToken = ({
             abi,
             functionName: "withdrawETH",
             args: [poolAddress, amount, to],
+            gas: BigInt(300000),
           });
         },
         {

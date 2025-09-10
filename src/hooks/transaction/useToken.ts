@@ -59,6 +59,7 @@ export const useTokenApprove = ({
           abi,
           functionName: "approve",
           args: [spender, amount],
+          gas: BigInt(300000),
         });
       },
       {

@@ -43,6 +43,7 @@ export const useWithdraw = ({
             abi,
             functionName: "withdraw",
             args: [asset, amount, to],
+            gas: BigInt(300000),
           });
         },
         {
