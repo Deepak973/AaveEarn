@@ -222,8 +222,13 @@ export function SupplyModal({ onClose, underlyingAsset }: SupplyModalProps) {
     !isNativeETH &&
     (allowance === BigInt(0) ||
       (amount &&
-        BigInt(parseUnits(amount, poolReserve.decimals).toString()) >
-          allowance))
+        amount !== "." &&
+        BigInt(
+          parseUnits(
+            roundToTokenDecimals(amount, poolReserve.decimals),
+            poolReserve.decimals
+          ).toString()
+        ) > allowance))
   );
 
   const tokenBalance =

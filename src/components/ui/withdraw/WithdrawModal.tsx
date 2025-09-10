@@ -243,6 +243,7 @@ export function WithdrawModal({ onClose, underlyingAsset }: SupplyModalProps) {
     } else {
       const decimalTruncatedValue = roundToTokenDecimals(value, decimals);
       setAmount(decimalTruncatedValue);
+      setIsMaxSelected(false);
     }
   };
 
