@@ -58,3 +58,52 @@ body {
   border-radius: 0.75rem;
   border: 1px solid rgba(255, 255, 255, 0.06);
 }
+
+@keyframes showLogo {
+  0%,
+  49% {
+    opacity: 1;
+  }
+  50%,
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes showBack {
+  0%,
+  49% {
+    opacity: 0;
+  }
+  50%,
+  100% {
+    opacity: 1;
+  }
+}
+
+.image-switch {
+  position: relative;
+  width: 40px;
+  height: 40px;
+  border-radius: 0.5rem;
+  overflow: hidden;
+}
+
+.image-switch .logo,
+.image-switch .back {
+  position: absolute;
+  inset: 0;
+  background-size: contain; /* or cover, depending on your need */
+  background-repeat: no-repeat;
+  background-position: center;
+}
+
+.image-switch .logo {
+  background-image: url("/logo.png");
+  animation: showLogo 10s infinite steps(1, end);
+}
+
+.image-switch .back {
+  background-image: url("/back.png");
+  animation: showBack 10s infinite steps(1, end);
+}

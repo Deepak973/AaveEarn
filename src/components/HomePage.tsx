@@ -1,6 +1,5 @@
 "use client";
 import { useState, useRef, useCallback } from "react";
-import Image from "next/image";
 import { SupplyAssetsList } from "@/components/ui/supply/SupplyAssetsList";
 import { YourSupplies } from "@/components/ui/supply/YourSupplies";
 import {
@@ -107,8 +106,9 @@ export default function HomePage() {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen gap-6">
         <div className="text-center">
-          <div className="w-10 h-10 rounded-lg flex items-center justify-center mx-auto mb-4 bg-[#111318] border border-subtle">
-            <Image src="/logo.png" alt="Logo" width={40} height={40} />
+          <div className="w-10 h-10 mx-auto mb-4 border border-subtle bg-[#111318] image-switch">
+            <div className="logo"></div>
+            <div className="back"></div>
           </div>
 
           <h1 className="text-xl font-semibold text-text-secondary mb-2">
@@ -155,8 +155,9 @@ export default function HomePage() {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen gap-6">
         <div className="text-center">
-          <div className="w-10 h-10 rounded-lg flex items-center justify-center mx-auto mb-4 bg-[#111318] border border-subtle">
-            <Image src="/logo.png" alt="Logo" width={40} height={40} />
+          <div className="w-10 h-10 mx-auto mb-4 border border-subtle bg-[#111318] image-switch">
+            <div className="logo"></div>
+            <div className="back"></div>
           </div>
 
           <h1 className="text-xl font-semibold text-text-secondary mb-2">
@@ -204,9 +205,11 @@ export default function HomePage() {
       <GlassNav>
         <div className="container mx-auto max-w-7xl px-6 py-3 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-lg bg-[#111318] border border-subtle flex items-center justify-center">
-              <Image src="/logo.png" alt="Logo" width={36} height={36} />
+            <div className="w-10 h-10 mx-auto mb-4 border border-subtle bg-[#111318] image-switch">
+              <div className="logo"></div>
+              <div className="back"></div>
             </div>
+
             <span className="text-sm text-text-secondary font-semibold">
               Earn on Aave
             </span>
