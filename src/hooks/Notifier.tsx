@@ -15,15 +15,14 @@ export const Notifier = () => {
   useEffect(() => {
     if (!notification) return;
 
-    // Dismiss all existing toasts before showing a new one
-    toast.dismiss();
+    toast.dismiss(); // clear existing
 
     const baseStyle = {
-      background: "var(--secondary-bg)",
-      color: "var(--text-secondary)",
-      border: "1px solid rgba(255,255,255,0.06)",
-      borderRadius: 10,
-      boxShadow: "0 8px 24px rgba(0,0,0,0.3)",
+      background: "#3b82f6", // orange → yellow → dark red
+      color: "#fff",
+      borderRadius: 12,
+      boxShadow: "0 6px 18px rgba(0,0,0,0.3)",
+      fontWeight: 500,
     } as React.CSSProperties;
 
     const options: ToastOptions = {
@@ -41,7 +40,6 @@ export const Notifier = () => {
       closeButton: false,
     };
 
-    // Display based on kind
     switch (notification.kind) {
       case Alert_Kind__Enum_Type.SUCCESS:
         toast.success(notification.message, options);
@@ -49,15 +47,11 @@ export const Notifier = () => {
       case Alert_Kind__Enum_Type.ERROR:
         toast.error(notification.message, options);
         break;
-
       case Alert_Kind__Enum_Type.INFO:
         toast.info(notification.message, options);
         break;
       case Alert_Kind__Enum_Type.PROGRESS:
-        toast.loading(notification.message, {
-          ...options,
-          closeButton: false,
-        });
+        toast.loading(notification.message, { ...options, closeButton: false });
         break;
       default:
         toast(notification.message, options);
@@ -82,16 +76,16 @@ export const Notifier = () => {
       />
       <style jsx global>{`
         .themed-toast {
-          background: var(--secondary-bg) !important;
-          color: var(--text-secondary) !important;
-          border: 1px solid rgba(255, 255, 255, 0.06) !important;
-          border-radius: 10px !important;
+          background: #3b82f6 !important;
+          color: #fff !important;
+          border-radius: 12px !important;
+          font-weight: 500 !important;
         }
         .Toastify__toast-body {
-          font-size: 0.85rem !important;
+          font-size: 0.9rem !important;
         }
         .themed-progress {
-          background: #94b9ff !important;
+          background: #ffffff !important; /* white progress bar */
         }
       `}</style>
     </>

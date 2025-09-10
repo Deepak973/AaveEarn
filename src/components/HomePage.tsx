@@ -1,5 +1,5 @@
 "use client";
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import { SupplyAssetsList } from "@/components/ui/supply/SupplyAssetsList";
 import { YourSupplies } from "@/components/ui/supply/YourSupplies";
 import {
@@ -83,6 +83,7 @@ export default function HomePage() {
   useDetectClickOutside(profileRef, () => setProfileOpen(false));
   const [copied, setCopied] = useState(false);
   const { switchChain } = useSwitchChain();
+  const [showLogo, setShowLogo] = useState(false);
   const handleSwitchChain = useCallback(() => {
     switchChain({ chainId: 8453 });
   }, [switchChain]);
@@ -102,19 +103,39 @@ export default function HomePage() {
     setTimeout(() => setIsModalOpen(false), 220);
   };
 
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setShowLogo((prev) => !prev);
+    }, 10000);
+    return () => clearInterval(interval);
+  }, []);
+
   if (!isConnected) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen gap-6">
         <div className="text-center">
-          <div className="w-10 h-10 mx-auto mb-4 border border-subtle bg-[#111318] image-switch">
-            <div className="logo"></div>
-            <div className="back"></div>
+          <div
+            className="w-10 h-10 mx-auto mb-4 border border-subtle bg-[#111318] rounded-lg flex items-center justify-center cursor-pointer overflow-hidden"
+            onClick={() => setShowLogo((prev) => !prev)}
+          >
+            {showLogo ? (
+              <img
+                src="/logo.png"
+                alt="Logo"
+                className="w-full h-full object-contain"
+              />
+            ) : (
+              <img
+                src="/back.png"
+                alt="Back"
+                className="w-full h-full object-contain"
+              />
+            )}
           </div>
-
+          ;
           <h1 className="text-xl font-semibold text-text-secondary mb-2">
             Earn on Aave
           </h1>
-
           <p className="text-text-primary mb-6 text-sm">
             Connect your wallet to start earning yield
           </p>
@@ -155,9 +176,23 @@ export default function HomePage() {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen gap-6">
         <div className="text-center">
-          <div className="w-10 h-10 mx-auto mb-4 border border-subtle bg-[#111318] image-switch">
-            <div className="logo"></div>
-            <div className="back"></div>
+          <div
+            className="w-10 h-10 mx-auto mb-4 border border-subtle bg-[#111318] rounded-lg flex items-center justify-center cursor-pointer overflow-hidden"
+            onClick={() => setShowLogo((prev) => !prev)}
+          >
+            {showLogo ? (
+              <img
+                src="/logo.png"
+                alt="Logo"
+                className="w-full h-full object-contain"
+              />
+            ) : (
+              <img
+                src="/back.png"
+                alt="Back"
+                className="w-full h-full object-contain"
+              />
+            )}
           </div>
 
           <h1 className="text-xl font-semibold text-text-secondary mb-2">
@@ -205,9 +240,23 @@ export default function HomePage() {
       <GlassNav>
         <div className="container mx-auto max-w-7xl px-6 py-3 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 mx-auto mb-4 border border-subtle bg-[#111318] image-switch">
-              <div className="logo"></div>
-              <div className="back"></div>
+            <div
+              className="w-10 h-10 mx-auto mb-4 border border-subtle bg-[#111318] rounded-lg flex items-center justify-center cursor-pointer overflow-hidden"
+              onClick={() => setShowLogo((prev) => !prev)}
+            >
+              {showLogo ? (
+                <img
+                  src="/logo.png"
+                  alt="Logo"
+                  className="w-full h-full object-contain"
+                />
+              ) : (
+                <img
+                  src="/back.png"
+                  alt="Back"
+                  className="w-full h-full object-contain"
+                />
+              )}
             </div>
 
             <span className="text-sm text-text-secondary font-semibold">
