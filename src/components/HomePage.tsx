@@ -115,7 +115,7 @@ export default function HomePage() {
       <div className="flex flex-col items-center justify-center min-h-screen gap-6">
         <div className="text-center">
           <div
-            className="w-10 h-10 mx-auto mb-4 border border-subtle bg-[#111318] rounded-lg flex items-center justify-center cursor-pointer overflow-hidden"
+            className="w-10 h-10 mx-auto mb-4 flex items-center justify-center cursor-pointer overflow-hidden"
             onClick={() => setShowLogo((prev) => !prev)}
           >
             {showLogo ? (
@@ -132,7 +132,7 @@ export default function HomePage() {
               />
             )}
           </div>
-          ;
+
           <h1 className="text-xl font-semibold text-text-secondary mb-2">
             Earn on Aave
           </h1>
@@ -177,7 +177,7 @@ export default function HomePage() {
       <div className="flex flex-col items-center justify-center min-h-screen gap-6">
         <div className="text-center">
           <div
-            className="w-10 h-10 mx-auto mb-4 border border-subtle bg-[#111318] rounded-lg flex items-center justify-center cursor-pointer overflow-hidden"
+            className="w-10 h-10 mx-auto mb-4 flex items-center justify-center cursor-pointer overflow-hidden"
             onClick={() => setShowLogo((prev) => !prev)}
           >
             {showLogo ? (
@@ -241,7 +241,7 @@ export default function HomePage() {
         <div className="container mx-auto max-w-7xl px-6 py-3 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div
-              className="w-10 h-10 mx-auto mb-4 border border-subtle bg-[#111318] rounded-lg flex items-center justify-center cursor-pointer overflow-hidden"
+              className="w-10 h-10 mx-auto mb-4 flex items-center justify-center cursor-pointer overflow-hidden"
               onClick={() => setShowLogo((prev) => !prev)}
             >
               {showLogo ? (
