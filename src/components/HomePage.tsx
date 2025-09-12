@@ -76,7 +76,7 @@ export default function HomePage() {
   const { isConnected, address } = useAccount();
   const { connect, connectors } = useConnect();
   const { user, loading: loadingUser } = useAppDataContext();
-  const { context } = useMiniApp();
+  const { context, actions, added } = useMiniApp();
   const { disconnect } = useDisconnect();
   const [profileOpen, setProfileOpen] = useState(false);
   const profileRef = useRef<HTMLDivElement | null>(null);
@@ -108,6 +108,13 @@ export default function HomePage() {
       setShowLogo((prev) => !prev);
     }, 10000);
     return () => clearInterval(interval);
+  }, []);
+
+  useEffect(() => {
+    // Automatically prompt to add frame to client if not already added
+    if (context && !added) {
+      actions.addMiniApp();
+    }
   }, []);
 
   if (!isConnected) {
