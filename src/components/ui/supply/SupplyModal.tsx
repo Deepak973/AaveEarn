@@ -374,7 +374,7 @@ export function SupplyModal({ onClose, underlyingAsset }: SupplyModalProps) {
           decimals
         )} ${symbol} on your behalf on Aave via EOA (Earn on Aave) at ${apyPercent.toFixed(
           2
-        )}% APY. You can withdraw anytime, but it's better to keep it invested so it grows. A small nudge from me to avoid leaving your tokens idle—use EOA to supply more.`
+        )}% APY. You can withdraw anytime, but it's better to keep it invested so it grows. A small nudge from me to avoid leaving your tokens idle. Use EOA to supply more.`
       : `Hey, I just supplied ${roundToTokenDecimals(
           amount || "0",
           decimals
