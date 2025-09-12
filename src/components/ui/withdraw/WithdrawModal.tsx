@@ -2,7 +2,6 @@ import { useContext, useState, useEffect } from "react";
 import Image from "next/image";
 import { parseUnits } from "ethers/lib/utils";
 import { constants } from "ethers";
-import { useTokenApprove } from "~/hooks/transaction/useToken";
 import { useSupply } from "~/hooks/transaction/useSupply";
 import { useWrappedToken } from "~/hooks/transaction/useWrappedToken";
 import { useAccount } from "wagmi";
@@ -125,6 +124,7 @@ export function WithdrawModal({ onClose, underlyingAsset }: SupplyModalProps) {
     wethGatewayAddress: wethGatewayAddress as `0x${string}` | undefined,
     poolAddress: poolAddress as `0x${string}` | undefined,
     to: userAddress as `0x${string}` | undefined,
+    aTokenAddress: poolReserve?.aTokenAddress as `0x${string}` | undefined,
     onPrompt: () => {
       showAlert({
         kind: Alert_Kind__Enum_Type.PROGRESS,
@@ -148,38 +148,6 @@ export function WithdrawModal({ onClose, underlyingAsset }: SupplyModalProps) {
       showAlert({
         kind: Alert_Kind__Enum_Type.ERROR,
         message: `Failed to withdraw as ETH: ${
-          error instanceof Error ? error.message.slice(0, 50) : "Unknown error"
-        }`,
-      });
-    },
-  });
-
-  const {
-    allowance,
-    approve,
-    fetchAllowance,
-    loading: approveLoading,
-  } = useTokenApprove({
-    token: poolReserve?.aTokenAddress as `0x${string}` | undefined,
-    owner: userAddress as `0x${string}` | undefined,
-    spender: wethGatewayAddress as `0x${string}` | undefined,
-    onPrompt: () => {
-      showAlert({
-        kind: Alert_Kind__Enum_Type.PROGRESS,
-        message: `Please approve a${symbol} for the WETH Gateway to proceed.`,
-      });
-    },
-    onSubmitted: () => {},
-    onSuccess: () => {
-      showAlert({
-        kind: Alert_Kind__Enum_Type.SUCCESS,
-        message: `a${symbol} approved for WETH Gateway.`,
-      });
-    },
-    onError: (error) => {
-      showAlert({
-        kind: Alert_Kind__Enum_Type.ERROR,
-        message: `Failed to approve a${symbol}: ${
           error instanceof Error ? error.message.slice(0, 50) : "Unknown error"
         }`,
       });
@@ -219,7 +187,7 @@ export function WithdrawModal({ onClose, underlyingAsset }: SupplyModalProps) {
     },
   });
 
-  const isLoading = withdrawLoading || wrappedLoading || approveLoading;
+  const isLoading = withdrawLoading || wrappedLoading;
 
   useEffect(() => {
     const original = document.body.style.overflow;
@@ -261,17 +229,6 @@ export function WithdrawModal({ onClose, underlyingAsset }: SupplyModalProps) {
       const needed = isMaxSelected
         ? BigInt(constants.MaxUint256.toString())
         : BigInt(parseUnits(withdrawAmount, poolReserve.decimals).toString());
-
-      // Ensure aToken approval for Gateway
-      if (allowance < needed) {
-        try {
-          await approve(needed);
-          await fetchAllowance();
-        } catch {
-          return;
-        }
-      }
-
       await withdrawETH(needed);
       return;
     }

@@ -3,6 +3,8 @@ import { Address, WaitForTransactionReceiptReturnType, parseAbi } from "viem";
 import { writeContract } from "@wagmi/core";
 import { wagmiConfig } from "~/components/providers/WagmiProvider";
 import { submitAction } from "~/utils/submitAction";
+import { encodeFunctionData } from "viem";
+import { sendCalls, waitForCallsStatus } from "@wagmi/core";
 
 type UseWrappedTokenHook__Type = {
   depositETH: (amount: bigint) => Promise<void>;
@@ -15,11 +17,16 @@ const abi = parseAbi([
   "function withdrawETH(address pool, uint256 amount, address to) external",
 ]);
 
+const erc20Abi = parseAbi([
+  "function approve(address spender, uint256 amount) returns (bool)",
+]);
+
 export const useWrappedToken = ({
   wethGatewayAddress,
   poolAddress,
   onBehalfOf,
   to,
+  aTokenAddress,
   onPrompt,
   onSubmitted,
   onSuccess,
@@ -29,6 +36,7 @@ export const useWrappedToken = ({
   poolAddress?: Address;
   onBehalfOf?: Address;
   to?: Address;
+  aTokenAddress?: Address; // aToken to approve for withdrawETH path
   onPrompt?: () => void;
   onSubmitted?: (hash: `0x${string}`) => void;
   onSuccess?: (receipt: WaitForTransactionReceiptReturnType) => void;
@@ -81,39 +89,47 @@ export const useWrappedToken = ({
 
   const withdrawETH = useCallback(
     async (amount: bigint) => {
-      if (!wethGatewayAddress || !poolAddress || !to) return;
+      if (!wethGatewayAddress || !poolAddress || !to || !aTokenAddress) return;
+      try {
+        setLoading(true);
+        if (onPrompt) onPrompt();
 
-      await submitAction(
-        async () => {
-          return await writeContract(wagmiConfig, {
-            address: wethGatewayAddress,
-            abi,
-            functionName: "withdrawETH",
-            args: [poolAddress, amount, to],
-            gas: BigInt(300000),
-          });
-        },
-        {
-          onPrompt: () => {
-            setLoading(true);
-            if (onPrompt) onPrompt();
-          },
-          onSubmitted,
-          onSuccess: async (receipt: WaitForTransactionReceiptReturnType) => {
-            setLoading(false);
-            if (onSuccess) onSuccess(receipt);
-          },
-          onError: (err: unknown) => {
-            setLoading(false);
-            if (onError) onError(err);
-          },
-        }
-      );
+        const approveData = encodeFunctionData({
+          abi: erc20Abi,
+          functionName: "approve",
+          args: [wethGatewayAddress, amount],
+        });
+
+        const withdrawData = encodeFunctionData({
+          abi,
+          functionName: "withdrawETH",
+          args: [poolAddress, amount, to],
+        });
+
+        const { id } = await sendCalls(wagmiConfig, {
+          calls: [
+            { to: aTokenAddress, data: approveData },
+            { to: wethGatewayAddress, data: withdrawData },
+          ],
+        });
+
+        const { receipts } = await waitForCallsStatus(wagmiConfig, { id });
+        const first = receipts?.[0];
+        if (onSubmitted && first?.transactionHash)
+          onSubmitted(first.transactionHash);
+        if (onSuccess && first)
+          onSuccess(first as unknown as WaitForTransactionReceiptReturnType);
+      } catch (err) {
+        if (onError) onError(err);
+      } finally {
+        setLoading(false);
+      }
     },
     [
       wethGatewayAddress,
       poolAddress,
       to,
+      aTokenAddress,
       onPrompt,
       onSubmitted,
       onSuccess,

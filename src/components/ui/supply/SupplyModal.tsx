@@ -1,7 +1,6 @@
 import { useContext, useState, useEffect } from "react";
 import Image from "next/image";
 import { parseUnits } from "ethers/lib/utils";
-import { useTokenApprove } from "~/hooks/transaction/useToken";
 import { useSupply } from "~/hooks/transaction/useSupply";
 import { useWrappedToken } from "~/hooks/transaction/useWrappedToken";
 import { useAccount } from "wagmi";
@@ -165,44 +164,10 @@ export function SupplyModal({ onClose, underlyingAsset }: SupplyModalProps) {
     poolReserve.isWrappedBaseAsset && isNativeETH ? "ETH" : poolReserve.symbol;
 
   const {
-    approve,
-    allowance,
-    loading: approvalLoading,
-    fetchAllowance,
-  } = useTokenApprove({
-    token: underlyingAsset as `0x${string}`,
-    spender: poolAddress as `0x${string}`,
-    owner: userAddress as `0x${string}` | undefined,
-    onPrompt: () => {
-      showAlert({
-        kind: Alert_Kind__Enum_Type.PROGRESS,
-        message: `Please Approve ${symbol} to be used for the supply.`,
-      });
-    },
-    onSubmitted: (hash) => {},
-    onSuccess: (receipt) => {
-      showAlert({
-        kind: Alert_Kind__Enum_Type.SUCCESS,
-        message: `${symbol} approved successfully!`,
-      });
-      if (userAddress) {
-        // wait 2 seconds before re-fetching allowance
-        setTimeout(() => {
-          fetchAllowance();
-        }, 1000);
-      }
-    },
-    onError: (error) => {
-      showAlert({
-        kind: Alert_Kind__Enum_Type.ERROR,
-        message: `Failed to approve ${symbol}: ${
-          error instanceof Error ? error.message.slice(0, 50) : "Unknown error"
-        }`,
-      });
-    },
-  });
-
-  const { supply, loading: supplyLoading } = useSupply({
+    supply,
+    supplyWithApprove,
+    loading: supplyLoading,
+  } = useSupply({
     poolAddress: poolAddress as `0x${string}`,
     asset: isNativeETH
       ? undefined
@@ -220,9 +185,6 @@ export function SupplyModal({ onClose, underlyingAsset }: SupplyModalProps) {
         kind: Alert_Kind__Enum_Type.SUCCESS,
         message: `${symbol} supplied successfully!`,
       });
-      if (userAddress) {
-        fetchAllowance();
-      }
       setTimeout(() => {
         queryClient.invalidateQueries({
           queryKey: queryKeysFactory.pool,
@@ -275,26 +237,13 @@ export function SupplyModal({ onClose, underlyingAsset }: SupplyModalProps) {
     },
   });
 
-  const isLoading = approvalLoading || supplyLoading || wrappedTokenLoading;
+  const isLoading = supplyLoading || wrappedTokenLoading;
 
   useEffect(() => {
     setMounted(true);
     const t = setTimeout(() => setAnimateIn(true), 10);
     return () => clearTimeout(t);
   }, []);
-
-  const needsApproval = !!(
-    !isNativeETH &&
-    (allowance === BigInt(0) ||
-      (amount &&
-        amount !== "." &&
-        BigInt(
-          parseUnits(
-            roundToTokenDecimals(amount, poolReserve.decimals),
-            poolReserve.decimals
-          ).toString()
-        ) > allowance))
-  );
 
   const tokenBalance =
     walletBalances[poolReserve.underlyingAsset.toLowerCase()]?.amount || "0";
@@ -345,12 +294,6 @@ export function SupplyModal({ onClose, underlyingAsset }: SupplyModalProps) {
 
   const isMaxSelected = amount === maxAmountToSupply;
 
-  const handleApprove = () => {
-    if (!amount || parseFloat(amount) <= 0) return;
-    const approvalAmount = parseUnits(amount, poolReserve.decimals);
-    approve(BigInt(approvalAmount.toString()));
-  };
-
   const handleSupply = () => {
     if (!amount || parseFloat(amount) <= 0) return;
     const supplyAmount = parseUnits(amount, poolReserve.decimals);
@@ -358,7 +301,11 @@ export function SupplyModal({ onClose, underlyingAsset }: SupplyModalProps) {
     if (isNativeETH) {
       depositETH(BigInt(supplyAmount.toString()));
     } else {
-      supply(BigInt(supplyAmount.toString()));
+      supplyWithApprove({
+        token: underlyingAsset as `0x${string}`,
+        amount: BigInt(supplyAmount.toString()),
+        spender: poolAddress as `0x${string}`,
+      });
     }
     // Do not auto-close; allow user to share
   };
@@ -620,16 +567,6 @@ export function SupplyModal({ onClose, underlyingAsset }: SupplyModalProps) {
             </div>
 
             <div className="space-y-3">
-              {!isNativeETH && needsApproval && (
-                <button
-                  onClick={handleApprove}
-                  disabled={!amount || parseFloat(amount) <= 0 || isLoading}
-                  className="w-full px-4 py-3 bg-[#1f2937] text-text-secondary text-sm font-medium rounded-lg hover:bg-[#2b3444] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {approvalLoading ? "Approving..." : `Approve ${symbol}`}
-                </button>
-              )}
-
               <button
                 onClick={handleSupply}
                 disabled={
@@ -637,7 +574,6 @@ export function SupplyModal({ onClose, underlyingAsset }: SupplyModalProps) {
                   !parseFloat(amount) ||
                   parseFloat(amount) <= 0 ||
                   isLoading ||
-                  needsApproval ||
                   (supplyForOther && !selectedUser?.address)
                 }
                 className="w-full px-4 py-3 bg-[#1f2937] text-text-secondary text-sm font-medium rounded-lg hover:bg-[#2b3444] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
