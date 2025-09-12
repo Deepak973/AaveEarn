@@ -104,10 +104,28 @@ export default function HomePage() {
   };
 
   useEffect(() => {
-    const interval = setInterval(() => {
-      setShowLogo((prev) => !prev);
-    }, 10000);
-    return () => clearInterval(interval);
+    let timeout: ReturnType<typeof setTimeout>;
+    const sequence = [
+      { state: true, duration: 10000 }, // eyes open for 10s
+      { state: false, duration: 500 }, // blink close 0.5s
+      { state: true, duration: 500 }, // open 0.5s
+      { state: false, duration: 500 }, // close 0.5s
+    ];
+    let idx = 0;
+
+    const run = () => {
+      const step = sequence[idx];
+      setShowLogo(step.state);
+      timeout = setTimeout(() => {
+        idx = (idx + 1) % sequence.length;
+        run();
+      }, step.duration);
+    };
+
+    run();
+    return () => {
+      if (timeout) clearTimeout(timeout);
+    };
   }, []);
 
   useEffect(() => {
