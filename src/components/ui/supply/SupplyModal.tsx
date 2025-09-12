@@ -85,6 +85,71 @@ export function SupplyModal({ onClose, underlyingAsset }: SupplyModalProps) {
   const { user, reserves, marketReferencePriceInUsd } = useAppDataContext();
   const queryClient = useQueryClient();
 
+  // onBehalfOf search state
+  const [supplyForOther, setSupplyForOther] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchLoading, setSearchLoading] = useState(false);
+  const [searchResults, setSearchResults] = useState<
+    {
+      fid?: number;
+      username: string;
+      display_name: string;
+      pfp_url: string;
+      address?: `0x${string}`;
+    }[]
+  >([]);
+  const [selectedUser, setSelectedUser] = useState<{
+    fid?: number;
+    username: string;
+    display_name: string;
+    pfp_url: string;
+    address?: `0x${string}`;
+  } | null>(null);
+
+  useEffect(() => {
+    let active = true;
+    let abort = new AbortController();
+
+    async function run() {
+      if (!supplyForOther || !searchQuery.trim()) {
+        setSearchResults([]);
+        return;
+      }
+      try {
+        setSearchLoading(true);
+        const resp = await fetch(
+          `/api/user-search?q=${encodeURIComponent(searchQuery)}&limit=5`,
+          {
+            method: "GET",
+            signal: abort.signal,
+          }
+        );
+        if (!resp.ok) throw new Error("failed");
+        const data = (await resp.json()) as { users: any[] };
+        if (!active) return;
+        setSearchResults(data.users || []);
+      } catch (e) {
+        if (!active) return;
+        setSearchResults([]);
+      } finally {
+        if (active) setSearchLoading(false);
+      }
+    }
+
+    const t = setTimeout(run, 300);
+    return () => {
+      active = false;
+      abort.abort();
+      clearTimeout(t);
+    };
+  }, [searchQuery, supplyForOther]);
+
+  // Compute final onBehalfOf address
+  const onBehalfOfAddress =
+    supplyForOther && selectedUser?.address
+      ? selectedUser.address
+      : (userAddress as `0x${string}` | undefined);
+
   const poolReserve = reserves.find((reserve) => {
     if (underlyingAsset.toLowerCase() === API_ETH_MOCK_ADDRESS.toLowerCase())
       return reserve.isWrappedBaseAsset;
@@ -142,7 +207,7 @@ export function SupplyModal({ onClose, underlyingAsset }: SupplyModalProps) {
     asset: isNativeETH
       ? undefined
       : (underlyingAsset as `0x${string}` | undefined),
-    onBehalfOf: userAddress as `0x${string}` | undefined,
+    onBehalfOf: onBehalfOfAddress,
     onPrompt: () => {
       showAlert({
         kind: Alert_Kind__Enum_Type.PROGRESS,
@@ -179,7 +244,7 @@ export function SupplyModal({ onClose, underlyingAsset }: SupplyModalProps) {
   const { depositETH, loading: wrappedTokenLoading } = useWrappedToken({
     wethGatewayAddress: wethGatewayAddress as `0x${string}` | undefined,
     poolAddress: poolAddress as `0x${string}`,
-    onBehalfOf: userAddress as `0x${string}` | undefined,
+    onBehalfOf: onBehalfOfAddress,
     onPrompt: () => {
       showAlert({
         kind: Alert_Kind__Enum_Type.PROGRESS,
@@ -298,12 +363,24 @@ export function SupplyModal({ onClose, underlyingAsset }: SupplyModalProps) {
     // Do not auto-close; allow user to share
   };
 
-  const shareText = `Hey I just supplied ${roundToTokenDecimals(
-    amount || "0",
-    decimals
-  )} ${symbol} on Aave using EOA(Earn on Aave) which will give me ${apyPercent.toFixed(
-    2
-  )}% APY. Make your tokens grow, don't keep them idle.`;
+  const shareText =
+    supplyForOther &&
+    selectedUser &&
+    selectedUser.username &&
+    selectedUser.address &&
+    selectedUser.address !== (userAddress as `0x${string}` | undefined)
+      ? `Hey @${selectedUser.username}, I just supplied ${roundToTokenDecimals(
+          amount || "0",
+          decimals
+        )} ${symbol} on your behalf on Aave via EOA (Earn on Aave) at ${apyPercent.toFixed(
+          2
+        )}% APY. You can withdraw anytime, but it's better to keep it invested so it grows. A small nudge from me to avoid leaving your tokens idle—use EOA to supply more.`
+      : `Hey, I just supplied ${roundToTokenDecimals(
+          amount || "0",
+          decimals
+        )} ${symbol} on Aave using EOA (Earn on Aave) at ${apyPercent.toFixed(
+          2
+        )}% APY. Make your tokens grow—don't keep them idle.`;
 
   if (!mounted) return null;
 
@@ -419,6 +496,127 @@ export function SupplyModal({ onClose, underlyingAsset }: SupplyModalProps) {
                   as WETH under the hood, and you will receive aWETH.
                 </div>
               )}
+
+              {/* Supply on behalf toggle and search */}
+              <div className="mt-4 space-y-2">
+                <label className="flex items-center gap-2 text-xs text-text-primary">
+                  <input
+                    type="checkbox"
+                    checked={supplyForOther}
+                    onChange={(e) => {
+                      setSupplyForOther(e.target.checked);
+                      setSearchQuery("");
+                      setSearchResults([]);
+                      setSelectedUser(null);
+                    }}
+                  />
+                  Supply on behalf of someone
+                </label>
+
+                {supplyForOther && (
+                  <div className="space-y-2">
+                    {selectedUser ? (
+                      <div className="flex items-center justify-between bg-[#0e1015] border border-subtle rounded px-3 py-2 text-xs text-text-secondary">
+                        <div className="flex items-center gap-2">
+                          {selectedUser.pfp_url ? (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img
+                              src={selectedUser.pfp_url}
+                              alt="pfp"
+                              className="w-5 h-5 rounded-full"
+                            />
+                          ) : (
+                            <div className="w-5 h-5 rounded-full bg-[#1f2937]" />
+                          )}
+                          <span>@{selectedUser.username}</span>
+                          {selectedUser.address && (
+                            <span className="text-[10px] opacity-70">
+                              {selectedUser.address.slice(0, 6)}…
+                              {selectedUser.address.slice(-4)}
+                            </span>
+                          )}
+                        </div>
+                        <button
+                          className="text-[11px] text-text-primary hover:text-text-secondary"
+                          onClick={() => setSelectedUser(null)}
+                        >
+                          Change
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="relative">
+                        <InputBase
+                          sx={{
+                            flex: 1,
+                            "& input": {
+                              color: "#e5e7eb",
+                              fontSize: "14px",
+                              fontWeight: 500,
+                              "&::placeholder": {
+                                color: "#9CA3AF",
+                                opacity: 1,
+                              },
+                            },
+                          }}
+                          placeholder="Search Farcaster user by username"
+                          value={searchQuery}
+                          onChange={(e) => setSearchQuery(e.target.value)}
+                        />
+                        {(searchLoading ||
+                          (searchResults && searchResults.length > 0)) && (
+                          <div className="absolute z-10 mt-1 w-full bg-[#0e1015] border border-subtle rounded-md shadow-lg max-h-56 overflow-auto">
+                            {searchLoading && (
+                              <div className="px-3 py-2 text-xs text-text-primary">
+                                Searching…
+                              </div>
+                            )}
+                            {!searchLoading &&
+                              searchResults.map((u, idx) => (
+                                <button
+                                  key={`${u.fid || u.username}-${idx}`}
+                                  className="w-full flex items-center gap-2 px-3 py-2 text-left text-xs hover:bg-[#1a1f2c]"
+                                  onClick={() => setSelectedUser(u)}
+                                >
+                                  {u.pfp_url ? (
+                                    // eslint-disable-next-line @next/next/no-img-element
+                                    <img
+                                      src={u.pfp_url}
+                                      alt="pfp"
+                                      className="w-5 h-5 rounded-full"
+                                    />
+                                  ) : (
+                                    <div className="w-5 h-5 rounded-full bg-[#1f2937]" />
+                                  )}
+                                  <span className="text-text-secondary">
+                                    @{u.username}
+                                  </span>
+                                  {u.display_name && (
+                                    <span className="text-text-primary opacity-70">
+                                      {u.display_name}
+                                    </span>
+                                  )}
+                                  {u.address && (
+                                    <span className="ml-auto text-[10px] opacity-70">
+                                      {u.address.slice(0, 6)}…
+                                      {u.address.slice(-4)}
+                                    </span>
+                                  )}
+                                </button>
+                              ))}
+                            {!searchLoading &&
+                              searchResults.length === 0 &&
+                              searchQuery && (
+                                <div className="px-3 py-2 text-xs text-text-primary">
+                                  No users found
+                                </div>
+                              )}
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
             </div>
 
             <div className="space-y-3">
@@ -439,7 +637,8 @@ export function SupplyModal({ onClose, underlyingAsset }: SupplyModalProps) {
                   !parseFloat(amount) ||
                   parseFloat(amount) <= 0 ||
                   isLoading ||
-                  needsApproval
+                  needsApproval ||
+                  (supplyForOther && !selectedUser?.address)
                 }
                 className="w-full px-4 py-3 bg-[#1f2937] text-text-secondary text-sm font-medium rounded-lg hover:bg-[#2b3444] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
