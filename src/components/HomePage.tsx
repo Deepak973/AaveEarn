@@ -429,7 +429,7 @@ export default function HomePage() {
             <div className="text-sm text-text-secondary font-semibold">
               {loadingUser
                 ? "..."
-                : `$$${
+                : `$${
                     user?.netWorthUSD ? (+user.netWorthUSD).toFixed(2) : "0.00"
                   }`}
             </div>
@@ -564,7 +564,7 @@ export default function HomePage() {
                   >
                     {loadingUser
                       ? "..."
-                      : `$$${
+                      : `$${
                           user?.netWorthUSD
                             ? (+user.netWorthUSD).toFixed(2)
                             : "0.00"
