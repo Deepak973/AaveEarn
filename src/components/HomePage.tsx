@@ -88,6 +88,9 @@ export default function HomePage() {
     switchChain({ chainId: 8453 });
   }, [switchChain]);
   const chainId = useChainId();
+  const [walletMenuOpen, setWalletMenuOpen] = useState(false);
+  const walletMenuRef = useRef<HTMLDivElement | null>(null);
+  useDetectClickOutside(walletMenuRef, () => setWalletMenuOpen(false));
 
   const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
     setCurrentTab(newValue);
@@ -166,33 +169,67 @@ export default function HomePage() {
           </p>
         </div>
 
-        {context?.user?.pfpUrl && (
-          <div className="absolute top-4 right-4">
-            <img
-              src={context.user.pfpUrl}
-              alt="Profile"
-              className="w-10 h-10 rounded-lg border border-subtle object-cover"
-            />
-          </div>
-        )}
+        <div className="absolute top-4 right-4">
+          <img
+            src={context?.user?.pfpUrl || "/icon.png"}
+            alt="Profile"
+            className="w-10 h-10 rounded-lg border border-subtle object-cover"
+          />
+        </div>
 
-        <Button
-          variant="contained"
-          size="medium"
-          onClick={() => connect({ connector: connectors[0] })}
-          sx={{
-            background: "#1f2937",
-            color: "#e5e7eb",
-            px: 3,
-            py: 1.25,
-            fontSize: "0.875rem",
-            fontWeight: 500,
-            borderRadius: "8px",
-            "&:hover": { background: "#2b3444" },
-          }}
-        >
-          Connect Wallet
-        </Button>
+        <div className="relative" ref={walletMenuRef}>
+          <Button
+            variant="contained"
+            size="medium"
+            onClick={() => setWalletMenuOpen((v) => !v)}
+            sx={{
+              background: "#1f2937",
+              color: "#e5e7eb",
+              px: 3,
+              py: 1.25,
+              fontSize: "0.875rem",
+              fontWeight: 500,
+              borderRadius: "8px",
+              "&:hover": { background: "#2b3444" },
+            }}
+          >
+            Connect Wallet
+          </Button>
+
+          {walletMenuOpen && (
+            <div className="absolute left-1/2 -translate-x-1/2 mt-2 w-56 bg-secondary border border-subtle rounded-lg shadow-lg overflow-hidden z-50">
+              <div className="px-4 py-3 border-b border-subtle">
+                <p className="text-xs text-text-primary">Select a wallet</p>
+              </div>
+              <div className="p-2 space-y-1">
+                {(connectors || []).map((connector, idx) => (
+                  <button
+                    key={
+                      (connector as any).uid ||
+                      (connector as any).id ||
+                      `${connector.name}-${idx}`
+                    }
+                    onClick={() => {
+                      connect({ connector });
+                      setWalletMenuOpen(false);
+                    }}
+                    className="w-full text-left px-3 py-2 text-xs text-text-secondary hover:bg-[#111318] rounded disabled:opacity-60 disabled:cursor-not-allowed"
+                  >
+                    {connector.name}
+                  </button>
+                ))}
+                <div>
+                  <button
+                    onClick={() => setWalletMenuOpen(false)}
+                    className="w-full text-left px-3 py-2 text-xs text-text-secondary hover:bg-[#111318] rounded"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
     );
   }
@@ -229,15 +266,13 @@ export default function HomePage() {
           </p>
         </div>
 
-        {context?.user?.pfpUrl && (
-          <div className="absolute top-4 right-4">
-            <img
-              src={context.user.pfpUrl}
-              alt="Profile"
-              className="w-10 h-10 rounded-lg border border-subtle object-cover"
-            />
-          </div>
-        )}
+        <div className="absolute top-4 right-4">
+          <img
+            src={context?.user?.pfpUrl || "/icon.png"}
+            alt="Profile"
+            className="w-10 h-10 rounded-lg border border-subtle object-cover"
+          />
+        </div>
 
         <Button
           variant="contained"
@@ -289,96 +324,94 @@ export default function HomePage() {
             </span>
           </div>
 
-          {context?.user?.pfpUrl && (
-            <div className="relative" ref={profileRef}>
-              <button
-                onClick={() => setProfileOpen((v) => !v)}
-                className="flex items-center gap-2"
-                aria-haspopup="menu"
-                aria-expanded={profileOpen}
-              >
-                <img
-                  src={context.user.pfpUrl}
-                  alt="Profile"
-                  className="w-9 h-9 rounded-lg border border-subtle object-cover"
-                />
-              </button>
-              {profileOpen && (
-                <div className="absolute right-0 mt-2 w-56 bg-secondary border border-subtle rounded-lg shadow-lg overflow-hidden z-50">
-                  <div className="px-4 py-3 border-b border-subtle space-y-1">
-                    <p className="text-xs text-text-primary">Account</p>
-                    {isConnected && address ? (
-                      <div className="flex items-center justify-between gap-2">
-                        <span className="text-xs text-text-secondary">
-                          {truncateAddress(address)}
-                        </span>
+          <div className="relative" ref={profileRef}>
+            <button
+              onClick={() => setProfileOpen((v) => !v)}
+              className="flex items-center gap-2"
+              aria-haspopup="menu"
+              aria-expanded={profileOpen}
+            >
+              <img
+                src={context?.user?.pfpUrl || "/logo.png"}
+                alt="Profile"
+                className="w-9 h-9 rounded-lg border border-subtle object-cover"
+              />
+            </button>
+            {profileOpen && (
+              <div className="absolute right-0 mt-2 w-56 bg-secondary border border-subtle rounded-lg shadow-lg overflow-hidden z-50">
+                <div className="px-4 py-3 border-b border-subtle space-y-1">
+                  <p className="text-xs text-text-primary">Account</p>
+                  {isConnected && address ? (
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-xs text-text-secondary">
+                        {truncateAddress(address)}
+                      </span>
 
-                        <button
-                          onClick={async () => {
-                            try {
-                              await navigator.clipboard.writeText(address);
-                              setCopied(true);
-                              setTimeout(() => setCopied(false), 1200);
-                            } catch {}
-                          }}
-                          className="text-[11px] px-2 py-0.5 rounded bg-[#111318] text-text-secondary hover:bg-[#1a1d24]"
-                        >
-                          {copied ? "Copied" : "Copy"}
-                        </button>
-                      </div>
-                    ) : (
-                      <p className="text-xs text-text-secondary">Signed out</p>
-                    )}
-                  </div>
-                  <div className="p-2 space-y-1">
-                    {connectors?.[0] && (
                       <button
-                        onClick={() => {
-                          connect({ connector: connectors[0] });
-                          setProfileOpen(false);
+                        onClick={async () => {
+                          try {
+                            await navigator.clipboard.writeText(address);
+                            setCopied(true);
+                            setTimeout(() => setCopied(false), 1200);
+                          } catch {}
                         }}
-                        className="w-full text-left px-3 py-2 text-xs text-text-secondary hover:bg-[#111318] rounded"
+                        className="text-[11px] px-2 py-0.5 rounded bg-[#111318] text-text-secondary hover:bg-[#1a1d24]"
                       >
-                        Connect Farcaster
+                        {copied ? "Copied" : "Copy"}
                       </button>
-                    )}
-                    {connectors?.[1] && (
-                      <button
-                        onClick={() => {
-                          connect({ connector: connectors[1] });
-                          setProfileOpen(false);
-                        }}
-                        className="w-full text-left px-3 py-2 text-xs text-text-secondary hover:bg-[#111318] rounded"
-                      >
-                        Connect Coinbase Wallet
-                      </button>
-                    )}
-                    {connectors?.[2] && (
-                      <button
-                        onClick={() => {
-                          connect({ connector: connectors[2] });
-                          setProfileOpen(false);
-                        }}
-                        className="w-full text-left px-3 py-2 text-xs text-text-secondary hover:bg-[#111318] rounded"
-                      >
-                        Connect MetaMask
-                      </button>
-                    )}
-                  </div>
-                  <div className="border-t border-subtle" />
-                  <button
-                    onClick={() => {
-                      setProfileOpen(false);
-                      disconnect();
-                    }}
-                    className="w-full text-left px-4 py-2 text-sm text-text-secondary hover:bg-[#111318]"
-                  >
-                    Disconnect
-                  </button>
+                    </div>
+                  ) : (
+                    <p className="text-xs text-text-secondary">Signed out</p>
+                  )}
                 </div>
-              )}
-            </div>
-          )}
+                <div className="p-2 space-y-1">
+                  {connectors?.[0] && (
+                    <button
+                      onClick={() => {
+                        connect({ connector: connectors[0] });
+                        setProfileOpen(false);
+                      }}
+                      className="w-full text-left px-3 py-2 text-xs text-text-secondary hover:bg-[#111318] rounded"
+                    >
+                      Connect Farcaster
+                    </button>
+                  )}
+                  {connectors?.[1] && (
+                    <button
+                      onClick={() => {
+                        connect({ connector: connectors[1] });
+                        setProfileOpen(false);
+                      }}
+                      className="w-full text-left px-3 py-2 text-xs text-text-secondary hover:bg-[#111318] rounded"
+                    >
+                      Connect Coinbase Wallet
+                    </button>
+                  )}
+                  {connectors?.[2] && (
+                    <button
+                      onClick={() => {
+                        connect({ connector: connectors[2] });
+                        setProfileOpen(false);
+                      }}
+                      className="w-full text-left px-3 py-2 text-xs text-text-secondary hover:bg-[#111318] rounded"
+                    >
+                      Connect MetaMask
+                    </button>
+                  )}
+                </div>
+                <div className="border-t border-subtle" />
+                <button
+                  onClick={() => {
+                    setProfileOpen(false);
+                    disconnect();
+                  }}
+                  className="w-full text-left px-4 py-2 text-sm text-text-secondary hover:bg-[#111318]"
+                >
+                  Disconnect
+                </button>
+              </div>
+            )}
+          </div>
         </div>
       </GlassNav>
 
@@ -396,7 +429,7 @@ export default function HomePage() {
             <div className="text-sm text-text-secondary font-semibold">
               {loadingUser
                 ? "..."
-                : `$${
+                : `$$${
                     user?.netWorthUSD ? (+user.netWorthUSD).toFixed(2) : "0.00"
                   }`}
             </div>
@@ -531,7 +564,7 @@ export default function HomePage() {
                   >
                     {loadingUser
                       ? "..."
-                      : `$${
+                      : `$$${
                           user?.netWorthUSD
                             ? (+user.netWorthUSD).toFixed(2)
                             : "0.00"
